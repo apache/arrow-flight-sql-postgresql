@@ -16,6 +16,11 @@
 # under the License.
 
 github:
+  description: Apache Arrow Flight SQL adapter for PostgreSQL
+  homepage: https://arrow.apache.org/flight-sql-postgresql/
+  labels:
+    - apache-arrow-flight-sql
+    - postgresql
   enabled_merge_buttons:
     merge: false
     rebase: false
