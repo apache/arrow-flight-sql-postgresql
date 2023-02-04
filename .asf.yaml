@@ -21,6 +21,7 @@ github:
   labels:
     - apache-arrow-flight-sql
     - postgresql
+  del_branch_on_merge: true
   enabled_merge_buttons:
     merge: false
     rebase: false
