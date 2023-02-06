@@ -15,9 +15,26 @@
 # specific language governing permissions and limitations
 # under the License.
 
-/.cache/
-/compile_commands.json
-/dev/release/apache-rat-0.13.jar
-/dev/release/dist
-/dev/release/filtered_rat.txt
-/dev/release/rat.xml
+name: Lint
+on:
+  pull_request:
+  push:
+
+concurrency:
+  group: ${{ github.head_ref || github.sha }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  license:
+    name: Audit licenses
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Run Release audit tool (Rat)
+        run: dev/release/run_rat.sh .
