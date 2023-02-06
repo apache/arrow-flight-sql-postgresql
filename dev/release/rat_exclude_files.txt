@@ -15,9 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-/.cache/
-/compile_commands.json
-/dev/release/apache-rat-0.13.jar
-/dev/release/dist
-/dev/release/filtered_rat.txt
-/dev/release/rat.xml
+compile_commands.json
+dev/release/apache-rat-*.jar
+dev/release/filtered_rat.txt
+dev/release/rat.xml
