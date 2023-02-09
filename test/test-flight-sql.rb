@@ -19,6 +19,10 @@ class FlightSQLTest < Test::Unit::TestCase
   include Helper::Sandbox
 
   def test_connect
+    unless flight_client.respond_to?(:authenticate_basic_token)
+      omit("red-flight-sql 12.0.0 or later is required")
+    end
+    flight_client.authenticate_basic_token(@postgresql.user, "password")
     exception = assert_raise(Arrow::Error::NotImplemented) do
       flight_sql_client.execute("SELECT 1")
     end
