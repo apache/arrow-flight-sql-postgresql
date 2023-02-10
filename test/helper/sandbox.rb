@@ -186,9 +186,12 @@ module Helper
       [output, error]
     end
 
+    def flight_client
+      @flight_client ||= ArrowFlight::Client.new(@flight_sql_uri)
+    end
+
     def flight_sql_client
-      client = ArrowFlight::Client.new(@flight_sql_uri)
-      ArrowFlightSQL::Client.new(client)
+      @flight_sql_client ||= ArrowFlightSQL::Client.new(flight_client)
     end
 
     def read_log
@@ -229,6 +232,10 @@ module Helper
 
     def run_sql(sql)
       psql(@test_db_name, sql)
+    end
+
+    def flight_client
+      @postgresql.flight_client
     end
 
     def flight_sql_client
