@@ -21,4 +21,8 @@ require "test-unit"
 
 require_relative "helper/sandbox"
 
+if File.exist?("build.ninja")
+  system("ninja", "install") or exit(false)
+end
+
 exit(Test::Unit::AutoRunner.run(true, __dir__))

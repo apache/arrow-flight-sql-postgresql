@@ -18,16 +18,15 @@
 class FlightSQLTest < Test::Unit::TestCase
   include Helper::Sandbox
 
-  def test_connect
-    unless flight_client.respond_to?(:authenticate_basic_token)
-      omit("red-flight-sql 12.0.0 or later is required")
-    end
-    flight_client.authenticate_basic_token(@postgresql.user, "password")
-    exception = assert_raise(Arrow::Error::NotImplemented) do
-      flight_sql_client.execute("SELECT 1")
-    end
-    assert_equal("[flight-sql-client][execute]: " +
-                 "NotImplemented: GetFlightInfoStatement not implemented",
-                 exception.message.lines(chomp: true).first)
+  def test_select_int32
+    options = ArrowFlight::CallOptions.new
+    options.add_header("x-flight-sql-database", @test_db_name)
+    info = flight_sql_client.execute("SELECT 1 AS value", options)
+    assert_equal(Arrow::Schema.new(value: :int32),
+                 info.get_schema)
+    endpoint = info.endpoints.first
+    reader = flight_sql_client.do_get(endpoint.ticket, options)
+    assert_equal(Arrow::Table.new(value: Arrow::Int32Array.new([1])),
+                 reader.read_all)
   end
 end
