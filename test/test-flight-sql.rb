@@ -29,4 +29,19 @@ class FlightSQLTest < Test::Unit::TestCase
     assert_equal(Arrow::Table.new(value: Arrow::Int32Array.new([1])),
                  reader.read_all)
   end
+
+  def test_select_from
+    run_sql("CREATE TABLE data (value integer)")
+    run_sql("INSERT INTO data VALUES (1), (-2), (3)")
+
+    options = ArrowFlight::CallOptions.new
+    options.add_header("x-flight-sql-database", @test_db_name)
+    info = flight_sql_client.execute("SELECT * FROM data", options)
+    assert_equal(Arrow::Schema.new(value: :int32),
+                 info.get_schema)
+    endpoint = info.endpoints.first
+    reader = flight_sql_client.do_get(endpoint.ticket, options)
+    assert_equal(Arrow::Table.new(value: Arrow::Int32Array.new([1, -2, 3])),
+                 reader.read_all)
+  end
 end

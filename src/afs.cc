@@ -203,6 +203,7 @@ class Executor : public WorkerProcessor {
 		sharedData_->executeData.buffer.data = InvalidDsaPointer;
 		sharedData_->executeData.buffer.total = 0;
 		sharedData_->executeData.buffer.used = 0;
+		sharedData_->executorPID = InvalidPid;
 		LWLockRelease(lock_);
 		pgstat_report_activity(STATE_IDLE, NULL);
 	}
@@ -278,7 +279,7 @@ class Executor : public WorkerProcessor {
 			arrow::RecordBatchBuilder::Make(schema, arrow::default_memory_pool()));
 		for (uint64_t iTuple = 0; iTuple < SPI_processed; ++iTuple)
 		{
-			for (uint64_t iAttribute = 0; iAttribute < SPI_tuptable->numvals;
+			for (uint64_t iAttribute = 0; iAttribute < SPI_tuptable->tupdesc->natts;
 			     ++iAttribute)
 			{
 				bool isNull;
@@ -410,7 +411,7 @@ class MainProcessor : public Processor {
 	{
 		BackgroundWorker worker = {0};
 		snprintf(worker.bgw_name, BGW_MAXLEN, "%s: server", Tag);
-		snprintf(worker.bgw_type, BGW_MAXLEN, Tag);
+		snprintf(worker.bgw_type, BGW_MAXLEN, "%s: server", Tag);
 		worker.bgw_flags = BGWORKER_SHMEM_ACCESS;
 		worker.bgw_start_time = BgWorkerStart_ConsistentState;
 		worker.bgw_restart_time = BGW_NEVER_RESTART;
@@ -435,8 +436,9 @@ class MainProcessor : public Processor {
 		}
 
 		BackgroundWorker worker = {0};
+		// TODO: Add executor ID to bgw_name
 		snprintf(worker.bgw_name, BGW_MAXLEN, "%s: executor", Tag);
-		snprintf(worker.bgw_type, BGW_MAXLEN, Tag);
+		snprintf(worker.bgw_type, BGW_MAXLEN, "%s: executor", Tag);
 		worker.bgw_flags = BGWORKER_SHMEM_ACCESS | BGWORKER_BACKEND_DATABASE_CONNECTION;
 		worker.bgw_start_time = BgWorkerStart_ConsistentState;
 		worker.bgw_restart_time = BGW_NEVER_RESTART;
@@ -694,7 +696,7 @@ _PG_init(void)
 
 	BackgroundWorker worker = {0};
 	snprintf(worker.bgw_name, BGW_MAXLEN, "%s: main", Tag);
-	snprintf(worker.bgw_type, BGW_MAXLEN, Tag);
+	snprintf(worker.bgw_type, BGW_MAXLEN, "%s: main", Tag);
 	worker.bgw_flags = BGWORKER_SHMEM_ACCESS;
 	worker.bgw_start_time = BgWorkerStart_ConsistentState;
 	worker.bgw_restart_time = BGW_NEVER_RESTART;
