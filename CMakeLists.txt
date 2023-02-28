@@ -85,6 +85,8 @@ find_package(ArrowFlightSql REQUIRED)
 
 add_library(arrow_flight_sql MODULE ${AFS_SOURCES})
 set_target_properties(arrow_flight_sql PROPERTIES PREFIX "")
+target_compile_definitions(arrow_flight_sql
+                           PRIVATE "$<$<CONFIG:Debug>:AFS_DEBUG>")
 target_link_libraries(arrow_flight_sql postgresql
                       ArrowFlightSql::arrow_flight_sql_shared)
 execute_process(
