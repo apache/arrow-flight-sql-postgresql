@@ -15,9 +15,5 @@
 # specific language governing permissions and limitations
 # under the License.
 
-benchmark/integer/result.csv
-benchmark/integer/result.svg
-compile_commands.json
-dev/release/apache-rat-*.jar
-dev/release/filtered_rat.txt
-dev/release/rat.xml
+add_executable(select select.c)
+target_link_libraries(select libpq)

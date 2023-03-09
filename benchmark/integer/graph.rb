@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,9 +17,15 @@
 # specific language governing permissions and limitations
 # under the License.
 
-benchmark/integer/result.csv
-benchmark/integer/result.svg
-compile_commands.json
-dev/release/apache-rat-*.jar
-dev/release/filtered_rat.txt
-dev/release/rat.xml
+require "csv"
+require "charty"
+
+Charty::Backends.use("pyplot")
+data = CSV.read(File.join(__dir__, "result.csv"),
+                headers: true,
+                converters: :all)
+plotter = Charty.bar_plot(data: data,
+                          x: "N records",
+                          y: "Elapsed time (sec)",
+                          color: "Approach")
+plotter.save("result.svg")

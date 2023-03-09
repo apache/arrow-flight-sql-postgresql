@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,9 +17,19 @@
 # specific language governing permissions and limitations
 # under the License.
 
-benchmark/integer/result.csv
-benchmark/integer/result.svg
-compile_commands.json
-dev/release/apache-rat-*.jar
-dev/release/filtered_rat.txt
-dev/release/rat.xml
+require "time"
+
+require "arrow-flight-sql"
+
+call_options = ArrowFlight::CallOptions.new
+call_options.add_header("x-flight-sql-database", "afs_benchmark")
+client = ArrowFlight::Client.new("grpc://127.0.0.1:15432")
+sql_client = ArrowFlightSQL::Client.new(client)
+
+before = Time.now
+info = sql_client.execute("SELECT * FROM data", call_options)
+endpoint = info.endpoints.first
+reader = sql_client.do_get(endpoint.ticket, call_options)
+table = reader.read_all
+# p table
+puts("%.3fsec" % (Time.now - before))
