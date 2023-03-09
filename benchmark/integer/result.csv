@@ -1,0 +1,10 @@
+Approach,N records,Elapsed time (sec)
+Apache Arrow Flight SQL,100000,0.014
+C,100000,0.012
+psql,100000,0.011
+Apache Arrow Flight SQL,1000000,0.069
+C,1000000,0.116
+psql,1000000,0.107
+Apache Arrow Flight SQL,10000000,0.653
+C,10000000,1.154
+psql,10000000,1.128
