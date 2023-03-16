@@ -81,6 +81,30 @@ execute_process(
   ANY)
 target_link_directories(postgresql INTERFACE ${AFS_PG_LIB_DIR})
 
+add_library(libpq SHARED IMPORTED)
+execute_process(
+  COMMAND pg_config "--includedir"
+  OUTPUT_VARIABLE AFS_LIBPG_INCLUDE_DIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE ECHO_OUTPUT_VARIABLE COMMAND_ERROR_IS_FATAL
+  ANY)
+target_include_directories(libpq INTERFACE ${AFS_LIBPG_INCLUDE_DIR})
+execute_process(
+  COMMAND pg_config "--cflags"
+  OUTPUT_VARIABLE AFS_LIBPQ_CFLAGS
+  OUTPUT_STRIP_TRAILING_WHITESPACE ECHO_OUTPUT_VARIABLE COMMAND_ERROR_IS_FATAL
+  ANY)
+separate_arguments(AFS_LIBPQ_COMPILE_OPTIONS NATIVE_COMMAND PROGRAM
+                   SEPARATE_ARGS ${AFS_LIBPQ_CFLAGS})
+target_compile_options(libpq INTERFACE ${AFS_LIBPQ_COMPILE_OPTIONS})
+execute_process(
+  COMMAND pg_config "--libdir"
+  OUTPUT_VARIABLE AFS_LIBPQ_LIB_DIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE ECHO_OUTPUT_VARIABLE COMMAND_ERROR_IS_FATAL
+  ANY)
+find_library(AFS_LIBPQ_SHARED_LIBRARY pq PATHS ${AFS_LIBPQ_LIB_DIR})
+set_target_properties(libpq PROPERTIES IMPORTED_LOCATION
+                                       ${AFS_LIBPQ_SHARED_LIBRARY})
+
 find_package(ArrowFlightSql REQUIRED)
 
 add_library(arrow_flight_sql MODULE ${AFS_SOURCES})
@@ -97,3 +121,5 @@ execute_process(
 install(TARGETS arrow_flight_sql DESTINATION "${AFS_PG_EXTENSION_DIR}")
 
 install(FILES LICENSE.txt NOTICE.txt DESTINATION "${CMAKE_INSTALL_DOCDIR}")
+
+add_subdirectory(benchmark/integer)
