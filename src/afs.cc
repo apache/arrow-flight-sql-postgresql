@@ -52,15 +52,15 @@ extern "C"
 #include <sstream>
 
 #ifdef __GNUC__
-#define AFS_FUNC __PRETTY_FUNCTION__
+#	define AFS_FUNC __PRETTY_FUNCTION__
 #else
-#define AFS_FUNC __func__
+#	define AFS_FUNC __func__
 #endif
 
 #ifdef AFS_DEBUG
-#define P(...) ereport(DEBUG5, errmsg_internal(__VA_ARGS__))
+#	define P(...) ereport(DEBUG5, errmsg_internal(__VA_ARGS__))
 #else
-#define P(...)
+#	define P(...)
 #endif
 
 extern "C"
@@ -747,16 +747,24 @@ class Executor : public WorkerProcessor {
 				}
 			}
 
-			if (((iTuple + 1) % MaxNRowsPerRecordBatch) == 0) {
+			if (((iTuple + 1) % MaxNRowsPerRecordBatch) == 0)
+			{
 				ARROW_ASSIGN_OR_RAISE(recordBatch, builder->Flush());
-				P("%s: %s: write: data: WriteRecordBatch: %d/%d", Tag, tag_, iTuple, SPI_processed);
+				P("%s: %s: write: data: WriteRecordBatch: %d/%d",
+				  Tag,
+				  tag_,
+				  iTuple,
+				  SPI_processed);
 				ARROW_RETURN_NOT_OK(writer->WriteRecordBatch(*recordBatch));
 				needLastFlush = false;
-			} else {
+			}
+			else
+			{
 				needLastFlush = true;
 			}
 		}
-		if (needLastFlush) {
+		if (needLastFlush)
+		{
 			ARROW_ASSIGN_OR_RAISE(recordBatch, builder->Flush());
 			P("%s: %s: write: data: WriteRecordBatch", Tag, tag_);
 			ARROW_RETURN_NOT_OK(writer->WriteRecordBatch(*recordBatch));

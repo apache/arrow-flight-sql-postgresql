@@ -37,3 +37,4 @@ UseTab: AlignWithSpaces
 # Project style
 BinPackArguments: false
 BinPackParameters: false
+IndentPPDirectives: AfterHash
