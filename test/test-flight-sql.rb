@@ -18,14 +18,23 @@
 class FlightSQLTest < Test::Unit::TestCase
   include Helper::Sandbox
 
+  setup do
+    unless flight_client.respond_to?(:authenticate_basic)
+      omit("ArrowFlight::Client#authenticate_basic is needed" )
+    end
+    @options = ArrowFlight::CallOptions.new
+    @options.add_header("x-flight-sql-database", @test_db_name)
+    user = @postgresql.user
+    password = ""
+    flight_client.authenticate_basic(user, password, @options)
+  end
+
   def test_select_int32
-    options = ArrowFlight::CallOptions.new
-    options.add_header("x-flight-sql-database", @test_db_name)
-    info = flight_sql_client.execute("SELECT 1 AS value", options)
+    info = flight_sql_client.execute("SELECT 1 AS value", @options)
     assert_equal(Arrow::Schema.new(value: :int32),
                  info.get_schema)
     endpoint = info.endpoints.first
-    reader = flight_sql_client.do_get(endpoint.ticket, options)
+    reader = flight_sql_client.do_get(endpoint.ticket, @options)
     assert_equal(Arrow::Table.new(value: Arrow::Int32Array.new([1])),
                  reader.read_all)
   end
@@ -34,13 +43,11 @@ class FlightSQLTest < Test::Unit::TestCase
     run_sql("CREATE TABLE data (value integer)")
     run_sql("INSERT INTO data VALUES (1), (-2), (3)")
 
-    options = ArrowFlight::CallOptions.new
-    options.add_header("x-flight-sql-database", @test_db_name)
-    info = flight_sql_client.execute("SELECT * FROM data", options)
+    info = flight_sql_client.execute("SELECT * FROM data", @options)
     assert_equal(Arrow::Schema.new(value: :int32),
                  info.get_schema)
     endpoint = info.endpoints.first
-    reader = flight_sql_client.do_get(endpoint.ticket, options)
+    reader = flight_sql_client.do_get(endpoint.ticket, @options)
     assert_equal(Arrow::Table.new(value: Arrow::Int32Array.new([1, -2, 3])),
                  reader.read_all)
   end
