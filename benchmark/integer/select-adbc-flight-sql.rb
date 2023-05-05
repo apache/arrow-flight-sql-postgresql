@@ -24,14 +24,16 @@ require "adbc"
 options = {
   "driver" => "adbc_driver_flightsql",
   "uri" => "grpc://127.0.0.1:15432",
+  "username" => ENV["PGUSER"] || ENV["USER"],
+  "password" => ENV["PGPASSWORD"] || "",
   "adbc.flight.sql.rpc.call_header.x-flight-sql-database" => "afs_benchmark",
 }
 ADBC::Database.open(**options) do |database|
   database.connect do |connection|
     connection.open_statement do |statement|
       before = Time.now
-      table, n_rows_affected = statement.query("SELECT * FROM data")
-      # p table
+      _table, _n_rows_affected = statement.query("SELECT * FROM data")
+      # p _table
       puts("%.3fsec" % (Time.now - before))
     end
   end

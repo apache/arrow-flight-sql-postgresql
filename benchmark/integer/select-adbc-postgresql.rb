@@ -29,8 +29,8 @@ ADBC::Database.open(**options) do |database|
   database.connect do |connection|
     connection.open_statement do |statement|
       before = Time.now
-      table, n_rows_affected = statement.query("SELECT * FROM data")
-      # p table
+      _table, _n_rows_affected = statement.query("SELECT * FROM data")
+      # p _table
       puts("%.3fsec" % (Time.now - before))
     end
   end
