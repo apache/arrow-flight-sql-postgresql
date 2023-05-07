@@ -17,6 +17,7 @@
 
 require "fileutils"
 require "socket"
+require "tempfile"
 
 require "arrow-flight-sql"
 
@@ -27,6 +28,9 @@ module Helper
         "LC_ALL" => "C",
         "PGCLIENTENCODING" => "UTF-8",
       }
+      if args.first.is_a?(Hash)
+        env.merge!(args.shift)
+      end
       output_read, output_write = IO.pipe
       error_read, error_write = IO.pipe
       options = {
@@ -97,6 +101,7 @@ module Helper
     attr_reader :flight_sql_port
     attr_reader :flight_sql_uri
     attr_reader :user
+    attr_reader :password
     def initialize(base_dir)
       @base_dir = base_dir
       @dir = nil
@@ -107,6 +112,7 @@ module Helper
       @flight_sql_port = nil
       @flight_sql_uri = nil
       @user = "arrow-flight-sql-test"
+      @password = "Passw0rd!"
       @running = false
     end
 
@@ -122,13 +128,21 @@ module Helper
       @log_path = File.join(@dir, "log", @log_base_name)
       socket_dir = File.join(@dir, "socket")
       @port = port
+      @pgpass = Tempfile.new("arrow-flight-sql-test-pgpass")
+      @pgpass.puts("#{@host}:#{@port}:*:#{@user}:#{@password}")
+      @pgpass.close
       @flight_sql_port = flight_sql_port
       @flight_sql_uri = "grpc://#{@host}:#{@flight_sql_port}"
-      run_command("initdb",
-                  "--locale", "C",
-                  "--encoding", "UTF-8",
-                  "--username", @user,
-                  "-D", @dir)
+      Tempfile.create("arrow-flight-sql-test-password") do |password|
+        password.print(@password)
+        password.close
+        run_command("initdb",
+                    "--locale", "C",
+                    "--encoding", "UTF-8",
+                    "--username", @user,
+                    "--pwfile", password.path,
+                    "-D", @dir)
+      end
       FileUtils.mkdir_p(socket_dir)
       postgresql_conf = File.join(@dir, "postgresql.conf")
       File.open(postgresql_conf, "a") do |conf|
@@ -144,6 +158,10 @@ module Helper
         conf.puts("arrow_flight_sql.uri = #{@flight_sql_uri}")
         yield(conf) if block_given?
       end
+      pg_hba_conf = File.join(@dir, "pg_hba.conf")
+      pg_hba = File.read(pg_hba_conf)
+      pg_hba.gsub!(/^(host.+)trust$/, "\\1password")
+      File.write(pg_hba_conf, pg_hba)
     end
 
     def start
@@ -175,12 +193,16 @@ module Helper
     end
 
     def psql(db, sql)
-      output, error = run_command("psql",
+      output, error = run_command({
+                                    "PGPASSFILE" => @pgpass.path,
+                                  },
+                                  "psql",
                                   "--host", @host,
                                   "--port", @port.to_s,
                                   "--username", @user,
                                   "--dbname", db,
                                   "--echo-all",
+                                  "--no-password",
                                   "--no-psqlrc",
                                   "--command", sql)
       [output, error]

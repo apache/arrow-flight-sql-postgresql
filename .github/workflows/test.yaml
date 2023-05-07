@@ -61,6 +61,7 @@ jobs:
           wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
           sudo apt update
           sudo apt -y -V -t ${suite} install \
+            libkrb5-dev \
             postgresql-${{ matrix.postgresql-version }} \
             postgresql-server-dev-${{ matrix.postgresql-version }}
       - name: Install Apache Arrow Flight SQL adapter

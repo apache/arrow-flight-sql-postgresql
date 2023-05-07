@@ -25,7 +25,7 @@ class FlightSQLTest < Test::Unit::TestCase
     @options = ArrowFlight::CallOptions.new
     @options.add_header("x-flight-sql-database", @test_db_name)
     user = @postgresql.user
-    password = ""
+    password = @postgresql.password
     flight_client.authenticate_basic(user, password, @options)
   end
 
