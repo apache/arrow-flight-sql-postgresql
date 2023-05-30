@@ -354,7 +354,7 @@ class SessionReleaser {
 };
 
 static dshash_parameters SessionsParams = {
-	sizeof(uint32_t),
+	sizeof(uint64_t),
 	sizeof(SessionData),
 	dshash_memcmp,
 	dshash_memhash,
