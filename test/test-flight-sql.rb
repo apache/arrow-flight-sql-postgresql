@@ -51,4 +51,27 @@ class FlightSQLTest < Test::Unit::TestCase
     assert_equal(Arrow::Table.new(value: Arrow::Int32Array.new([1, -2, 3])),
                  reader.read_all)
   end
+
+  def test_isnert_int32
+    unless filght_sql_client.respond_to?(:execute_update)
+      omit("red-arrow-flight-sql 13.0.0 or later is required")
+    end
+
+    run_sql("CREATE TABLE data (value integer)")
+
+    n_changed_records = flight_sql_client.execute_update(
+      "INSERT INTO data VALUES (1), (-2), (3)",
+      @options)
+    assert_equal(3, n_changed_records)
+    assert_equal([<<-RESULT, ""], run_sql("SELECT * FROM data"))
+SELECT * FROM data
+ value 
+-------
+     1
+    -2
+     3
+(3 rows)
+
+    RESULT
+  end
 end
