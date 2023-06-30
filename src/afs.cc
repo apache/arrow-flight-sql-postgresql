@@ -649,7 +649,11 @@ class Executor : public WorkerProcessor {
 
 	void signaled()
 	{
-		P("%s: %s: signaled: before: %d/%d", Tag, tag_, session_->selectQuery, session_->updateQuery);
+		P("%s: %s: signaled: before: %d/%d",
+		  Tag,
+		  tag_,
+		  session_->selectQuery,
+		  session_->updateQuery);
 		if (DsaPointerIsValid(session_->selectQuery))
 		{
 			select();
@@ -662,7 +666,11 @@ class Executor : public WorkerProcessor {
 		{
 			Processor::signaled();
 		}
-		P("%s: %s: signaled: after: %d/%d", Tag, tag_, session_->selectQuery, session_->updateQuery);
+		P("%s: %s: signaled: after: %d/%d",
+		  Tag,
+		  tag_,
+		  session_->selectQuery,
+		  session_->updateQuery);
 	}
 
    private:
@@ -914,17 +922,17 @@ class Executor : public WorkerProcessor {
 
 		switch (result)
 		{
-		case SPI_OK_INSERT:
-		case SPI_OK_DELETE:
-		case SPI_OK_UPDATE:
-			session_->nUpdatedRecords = SPI_processed;
-			break;
-		default:
-			set_shared_string(session_->errorMessage,
-			                  std::string(Tag) + ": " + tag_ + ": update" +
-			                      ": failed to run a query: <" + query +
-			                      ">: " + SPI_result_code_string(result));
-			break;
+			case SPI_OK_INSERT:
+			case SPI_OK_DELETE:
+			case SPI_OK_UPDATE:
+				session_->nUpdatedRecords = SPI_processed;
+				break;
+			default:
+				set_shared_string(session_->errorMessage,
+				                  std::string(Tag) + ": " + tag_ + ": update" +
+				                      ": failed to run a query: <" + query +
+				                      ">: " + SPI_result_code_string(result));
+				break;
 		}
 
 		PopActiveSnapshot();
@@ -1182,7 +1190,7 @@ class Proxy : public WorkerProcessor {
 	}
 
 	arrow::Result<std::shared_ptr<arrow::Schema>> select(uint64_t sessionID,
-														 const std::string& query)
+	                                                     const std::string& query)
 	{
 		auto session = find_session(sessionID);
 		SessionReleaser sessionReleaser(sessions_, session);
@@ -1231,15 +1239,15 @@ class Proxy : public WorkerProcessor {
 		session->nUpdatedRecords = -1;
 		if (session->executorPID != InvalidPid)
 		{
-			P("%s: %s: update: kill executor: %d",
-			  Tag, tag_, session->executorPID);
+			P("%s: %s: update: kill executor: %d", Tag, tag_, session->executorPID);
 			kill(session->executorPID, SIGUSR1);
 		}
 		{
 			std::unique_lock<std::mutex> lock(mutex_);
 			conditionVariable_.wait(lock, [&] {
 				P("%s: %s: %s: wait: update", Tag, tag_, AFS_FUNC);
-				return DsaPointerIsValid(session->errorMessage) || session->nUpdatedRecords >= 0;
+				return DsaPointerIsValid(session->errorMessage) ||
+				       session->nUpdatedRecords >= 0;
 			});
 		}
 		if (DsaPointerIsValid(session->errorMessage))
