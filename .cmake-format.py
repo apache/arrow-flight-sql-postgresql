@@ -15,5 +15,5 @@
 # specific language governing permissions and limitations
 # under the License.
 
-markup:
-  first_comment_is_literal: true
+with section("markup"):
+  first_comment_is_literal = True
