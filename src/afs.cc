@@ -96,7 +96,8 @@ static const int MaxNRowsPerRecordBatchDefault = 1 * 1024 * 1024;
 static int MaxNRowsPerRecordBatch;
 
 static volatile sig_atomic_t GotSIGTERM = false;
-void afs_sigterm(SIGNAL_ARGS)
+void
+afs_sigterm(SIGNAL_ARGS)
 {
 	auto errnoSaved = errno;
 	GotSIGTERM = true;
@@ -105,7 +106,8 @@ void afs_sigterm(SIGNAL_ARGS)
 }
 
 static volatile sig_atomic_t GotSIGHUP = false;
-void afs_sighup(SIGNAL_ARGS)
+void
+afs_sighup(SIGNAL_ARGS)
 {
 	auto errnoSaved = errno;
 	GotSIGHUP = true;
@@ -114,7 +116,8 @@ void afs_sighup(SIGNAL_ARGS)
 }
 
 static volatile sig_atomic_t GotSIGUSR1 = false;
-void afs_sigusr1(SIGNAL_ARGS)
+void
+afs_sigusr1(SIGNAL_ARGS)
 {
 	procsignal_sigusr1_handler(postgres_signal_arg);
 	auto errnoSaved = errno;

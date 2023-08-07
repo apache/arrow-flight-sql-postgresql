@@ -38,3 +38,16 @@ jobs:
           python-version: '3.x'
       - name: Run Release audit tool (Rat)
         run: dev/release/run_rat.sh .
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Run pre-commit
+        run: |
+          python -m pip install pre-commit
+          pre-commit run --show-diff-on-failure --color=always --all-files

@@ -29,25 +29,6 @@ include(GNUInstallDirs)
 
 set(AFS_SOURCES src/afs.cc)
 
-add_custom_target(format)
-# Ubuntu 20.04 ships clang-format-12.
-find_program(CLANG_FORMAT clang-format-12)
-if(CLANG_FORMAT)
-  add_custom_target(
-    format-source
-    ${CLANG_FORMAT} -i ${AFS_SOURCES}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-  add_dependencies(format format-source)
-endif()
-find_program(CMAKE_FORMAT cmake-format)
-if(CMAKE_FORMAT)
-  add_custom_target(
-    format-cmake
-    ${CMAKE_FORMAT} --in-place CMakeLists.txt
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
-  add_dependencies(format format-cmake)
-endif()
-
 set(AFS_POSTGRESQL_DIR
     "${CMAKE_INSTALL_PREFIX}"
     CACHE PATH "PostgreSQL binary directory")

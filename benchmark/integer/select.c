@@ -24,10 +24,10 @@
 #include <libpq-fe.h>
 
 int
-main(int argc, char **argv)
+main(int argc, char** argv)
 {
-    PGconn *connection = PQconnectdb("dbname=afs_benchmark");
-	PGresult *result;
+	PGconn* connection = PQconnectdb("dbname=afs_benchmark");
+	PGresult* result;
 	struct timeval before;
 	struct timeval after;
 	int nFields;
@@ -35,11 +35,11 @@ main(int argc, char **argv)
 	int nTuples;
 	int iTuple;
 
-    if (PQstatus(connection) != CONNECTION_OK)
-    {
+	if (PQstatus(connection) != CONNECTION_OK)
+	{
 		fprintf(stderr, "failed to connect: %s", PQerrorMessage(connection));
 		PQfinish(connection);
-        return EXIT_FAILURE;
+		return EXIT_FAILURE;
 	}
 
 	gettimeofday(&before, NULL);
@@ -49,7 +49,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "failed to select: %s", PQerrorMessage(connection));
 		PQclear(result);
 		PQfinish(connection);
-        return EXIT_FAILURE;
+		return EXIT_FAILURE;
 	}
 
 	nTuples = PQntuples(result);
@@ -64,7 +64,7 @@ main(int argc, char **argv)
 	gettimeofday(&after, NULL);
 	printf("%.3fsec\n",
 	       (after.tv_sec + (after.tv_usec / 1000000.0)) -
-		   (before.tv_sec + (before.tv_usec / 1000000.0)));
+	           (before.tv_sec + (before.tv_usec / 1000000.0)));
 	PQclear(result);
 
 	return EXIT_SUCCESS;
