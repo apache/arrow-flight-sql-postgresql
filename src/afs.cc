@@ -25,8 +25,10 @@ extern "C"
 #include <lib/dshash.h>
 #include <libpq/crypt.h>
 #include <libpq/libpq-be.h>
+#include <libpq/libpq.h>
 #include <miscadmin.h>
 #include <postmaster/bgworker.h>
+#include <postmaster/postmaster.h>
 #include <storage/ipc.h>
 #include <storage/latch.h>
 #include <storage/lwlock.h>
@@ -54,6 +56,8 @@ extern "C"
 
 #include <cinttypes>
 #include <condition_variable>
+#include <fstream>
+#include <iterator>
 #include <random>
 #include <sstream>
 
@@ -1654,11 +1658,39 @@ afs_server_internal(Proxy* proxy)
 {
 	ARROW_ASSIGN_OR_RAISE(auto location, arrow::flight::Location::Parse(URI));
 	arrow::flight::FlightServerOptions options(location);
+	if (EnableSSL)
+	{
+		arrow::flight::CertKeyPair certificate;
+		if (ssl_cert_file)
+		{
+			std::ifstream input(ssl_cert_file);
+			if (input)
+			{
+				certificate.pem_cert =
+					std::string(std::istreambuf_iterator<char>{input}, {});
+			}
+		}
+		if (ssl_key_file)
+		{
+			std::ifstream input(ssl_key_file);
+			if (input)
+			{
+				certificate.pem_key =
+					std::string(std::istreambuf_iterator<char>{input}, {});
+			}
+		}
+		if (!certificate.pem_cert.empty() && !certificate.pem_key.empty())
+		{
+			options.tls_certificates.push_back(std::move(certificate));
+		}
+	}
 	options.auth_handler = std::make_unique<arrow::flight::NoOpAuthHandler>();
 	options.middleware.push_back(
 		{"header-auth", std::make_shared<HeaderAuthServerMiddlewareFactory>(proxy)});
 	FlightSQLServer flightSQLServer(proxy);
 	ARROW_RETURN_NOT_OK(flightSQLServer.Init(options));
+
+	ereport(LOG, (errmsg("listening on %s for Apache Arrow Flight SQL", URI)));
 
 	while (!GotSIGTERM)
 	{

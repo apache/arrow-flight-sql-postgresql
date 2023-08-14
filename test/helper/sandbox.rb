@@ -96,7 +96,7 @@ module Helper
     include CommandRunnable
 
     attr_reader :dir
-    attr_reader :host
+    attr_reader :address
     attr_reader :port
     attr_reader :flight_sql_port
     attr_reader :flight_sql_uri
@@ -107,7 +107,7 @@ module Helper
       @dir = nil
       @log_base_name = "postgresql.log"
       @log_path = nil
-      @host = "127.0.0.1"
+      @address = "127.0.0.1"
       @port = nil
       @flight_sql_port = nil
       @flight_sql_uri = nil
@@ -129,10 +129,14 @@ module Helper
       socket_dir = File.join(@dir, "socket")
       @port = port
       @pgpass = Tempfile.new("arrow-flight-sql-test-pgpass")
-      @pgpass.puts("#{@host}:#{@port}:*:#{@user}:#{@password}")
+      @pgpass.puts("#{@address}:#{@port}:*:#{@user}:#{@password}")
       @pgpass.close
       @flight_sql_port = flight_sql_port
-      @flight_sql_uri = "grpc://#{@host}:#{@flight_sql_port}"
+      if use_tls?
+        @flight_sql_uri = "grpc+tls://#{@address}:#{@flight_sql_port}"
+      else
+        @flight_sql_uri = "grpc://#{@address}:#{@flight_sql_port}"
+      end
       Tempfile.create("arrow-flight-sql-test-password") do |password|
         password.print(@password)
         password.close
@@ -143,19 +147,24 @@ module Helper
                     "--pwfile", password.path,
                     "-D", @dir)
       end
+      prepare_tls if use_tls?
       FileUtils.mkdir_p(socket_dir)
       postgresql_conf = File.join(@dir, "postgresql.conf")
       File.open(postgresql_conf, "a") do |conf|
-        conf.puts("listen_addresses = '#{@host}'")
+        conf.puts("listen_addresses = '#{@address}'")
         conf.puts("port = #{@port}")
         unless windows?
           conf.puts("unix_socket_directories = '#{socket_dir}'")
+        end
+        if use_tls?
+          conf.puts("ssl = on")
+          conf.puts("ssl_ca_file = 'root.crt'")
         end
         conf.puts("logging_collector = on")
         conf.puts("log_filename = '#{@log_base_name}'")
         conf.puts("shared_preload_libraries = " +
                   "'#{shared_preload_libraries.join(",")}'")
-        conf.puts("arrow_flight_sql.uri = #{@flight_sql_uri}")
+        conf.puts("arrow_flight_sql.uri = '#{@flight_sql_uri}'")
         yield(conf) if block_given?
       end
       pg_hba_conf = File.join(@dir, "pg_hba.conf")
@@ -197,7 +206,7 @@ module Helper
                                     "PGPASSFILE" => @pgpass.path,
                                   },
                                   "psql",
-                                  "--host", @host,
+                                  "--host", @address,
                                   "--port", @port.to_s,
                                   "--username", @user,
                                   "--dbname", db,
@@ -209,7 +218,12 @@ module Helper
     end
 
     def flight_client
-      @flight_client ||= ArrowFlight::Client.new(@flight_sql_uri)
+      @flight_client ||=
+        ArrowFlight::Client.new(@flight_sql_uri, flight_client_options)
+    end
+
+    def flight_client_options
+      @flight_client_options ||= create_flight_client_options
     end
 
     def flight_sql_client
@@ -224,6 +238,31 @@ module Helper
     private
     def windows?
       /mingw|mswin|cygwin/.match?(RUBY_PLATFORM)
+    end
+
+    def use_tls?
+      return false if windows?
+      ArrowFlight::ClientOptions.method_defined?(:tls_root_certificates=)
+    end
+
+    def create_flight_client_options
+      options = ArrowFlight::ClientOptions.new
+      if use_tls?
+        options.tls_root_certificates = File.read(File.join(@dir, "root.crt"))
+        options.override_host_name = "server.example.com"
+      end
+      options
+    end
+
+    def prepare_tls
+      prepare_tls_sh = File.join(__dir__, "..", "..", "dev", "prepare-tls.sh")
+      prepare_tls_sh = File.expand_path(prepare_tls_sh)
+      Dir.chdir(@dir) do
+        run_command(prepare_tls_sh,
+                    "root.example.com",
+                    "server.example.com",
+                    "client.example.com")
+      end
     end
   end
 
