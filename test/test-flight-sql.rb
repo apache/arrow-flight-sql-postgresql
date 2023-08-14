@@ -53,7 +53,7 @@ class FlightSQLTest < Test::Unit::TestCase
   end
 
   def test_isnert_int32
-    unless filght_sql_client.respond_to?(:execute_update)
+    unless flight_sql_client.respond_to?(:execute_update)
       omit("red-arrow-flight-sql 13.0.0 or later is required")
     end
 

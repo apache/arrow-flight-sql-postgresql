@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,20 +17,34 @@
 # specific language governing permissions and limitations
 # under the License.
 
-root = true
+set -eu
 
-[*.{c,cc,h}]
+if [ $# -ne 4 ]; then
+  echo "Usage: $0 DATA_DIRECTORY CA_NAME SERVER_NAME CLIENT_NAME"
+  echo " e.g.: $0 /tmp/afs root.example.com server.example.com client.example.com"
+  exit 1
+fi
 
-end_of_line = lf
-indent_size = 4
-indent_style = tab
-insert_final_newline = true
-trim_trailing_whitespace = true
+data_directory=$1
+root_name=$2
+server_name=$3
+client_name=$4
 
-[*.sh]
+base_directory="$(cd "$(dirname "$0")" && pwd)"
 
-end_of_line = lf
-indent_size = 2
-indent_style = space
-insert_final_newline = true
-trim_trailing_whitespace = true
+rm -rf "${data_directory}"
+
+initdb \
+  --locale=C \
+  --set=arrow_flight_sql.uri=grpc+tls://${server_name}:15432 \
+  --set=shared_preload_libraries=arrow_flight_sql \
+  --set=ssl=on \
+  --set=ssl_ca_file=root.crt \
+  "${data_directory}"
+pushd "${data_directory}"
+"${base_directory}/prepare-tls.sh" \
+  "${root_name}" \
+  "${server_name}" \
+  "${client_name}"
+popd
+LANG=C postgres -D "${data_directory}"
