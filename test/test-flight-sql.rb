@@ -32,6 +32,7 @@ class FlightSQLTest < Test::Unit::TestCase
   data("int16", ["smallint", Arrow::Int16Array, -2])
   data("int32", ["integer",  Arrow::Int32Array, -2])
   data("int64", ["bigint",   Arrow::Int64Array, -2])
+  data("float", ["real"  ,   Arrow::FloatArray, -2.2])
   def test_select_type
     pg_type, array_class, value = data
     values = array_class.new([value])
@@ -89,6 +90,7 @@ SELECT * FROM data
   data("uint16", ["smallint", Arrow::UInt16Array, [1,  2, 3]])
   data("uint32", ["integer",  Arrow::UInt32Array, [1,  2, 3]])
   data("uint64", ["bigint",   Arrow::UInt64Array, [1,  2, 3]])
+  data("float",  ["real",     Arrow::FloatArray,  [1.1, -2.2, 3.3]])
   def test_insert_type
     unless flight_sql_client.respond_to?(:prepare)
       omit("red-arrow-flight-sql 14.0.0 or later is required")
@@ -111,7 +113,11 @@ SELECT * FROM data
 -------
     RESULT
     values.each do |value|
-      output << (" %5d\n" % value)
+      if value.is_a?(Float)
+        output << (" %5.1f\n" % value)
+      else
+        output << (" %5d\n" % value)
+      end
     end
     output << "(#{values.size} rows)\n"
     output << "\n"
