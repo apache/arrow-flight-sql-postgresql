@@ -32,7 +32,23 @@ class FlightSQLTest < Test::Unit::TestCase
   def to_sql(value)
     case value
     when String
-      "'#{value.gsub(/'/, "''")}'"
+      sql_string = "'"
+      value.each_char do |char|
+        case char
+        when "'"
+          sql_string << "''"
+        when "\\"
+          sql_string << "\\\\"
+        else
+          if (0..31).cover?(char.ord) or (127..255).cover?(char.ord)
+            sql_string << ("\\%03d" % char.ord)
+          else
+            sql_string << char
+          end
+        end
+      end
+      sql_string << "'"
+      sql_string
     else
       value.to_s
     end
@@ -45,6 +61,7 @@ class FlightSQLTest < Test::Unit::TestCase
   data("double", ["double precision", Arrow::DoubleArray, -2.2])
   data("string - text",    ["text",        Arrow::StringArray, "b"])
   data("string - varchar", ["varchar(10)", Arrow::StringArray, "b"])
+  data("binary", ["bytea", Arrow::BinaryArray, "\x0".b])
   def test_select_type
     pg_type, array_class, value = data
     values = array_class.new([value])
@@ -106,6 +123,7 @@ SELECT * FROM data
   data("double", ["double precision", Arrow::DoubleArray, [1.1, -2.2, 3.3]])
   data("string - text",    ["text",        Arrow::StringArray, ["a", "b", "c"]])
   data("string - varchar", ["varchar(10)", Arrow::StringArray, ["a", "b", "c"]])
+  data("binary", ["bytea", Arrow::BinaryArray, ["\x0".b, "\x1".b, "\x2".b]])
   def test_insert_type
     unless flight_sql_client.respond_to?(:prepare)
       omit("red-arrow-flight-sql 14.0.0 or later is required")
@@ -134,7 +152,15 @@ SELECT * FROM data
       when Integer
         output << (" %5d\n" % value)
       else
-        output << (" %s\n" % value)
+        if value.encoding == "".b.encoding
+          output << " "
+          value.each_byte do |byte|
+            output << ("\\x%02x" % byte)
+          end
+          output << "\n"
+        else
+          output << " #{value}\n"
+        end
       end
     end
     output << "(#{values.size} rows)\n"
