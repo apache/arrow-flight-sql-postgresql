@@ -75,30 +75,34 @@ SELECT * FROM data
     RESULT
   end
 
-  def test_insert_int32
+  data("int8", ["smallint", Arrow::Int8Array, [1, -2, 3]])
+  data("int32", ["integer", Arrow::Int32Array, [1, -2, 3]])
+  def test_insert_type
     unless flight_sql_client.respond_to?(:prepare)
       omit("red-arrow-flight-sql 14.0.0 or later is required")
     end
 
-    run_sql("CREATE TABLE data (value integer)")
+    pg_type, array_class, values = data
+    run_sql("CREATE TABLE data (value #{pg_type})")
 
     flight_sql_client.prepare("INSERT INTO data VALUES ($1)",
                               @options) do |statement|
-      values = Arrow::Int32Array.new([1, -2, 3])
-      statement.record_batch = Arrow::RecordBatch.new(value: values)
+      array = array_class.new(values)
+      statement.record_batch = Arrow::RecordBatch.new(value: array)
       n_changed_records = statement.execute_update(@options)
       assert_equal(3, n_changed_records)
     end
 
-    assert_equal([<<-RESULT, ""], run_sql("SELECT * FROM data"))
+    output = <<-RESULT
 SELECT * FROM data
  value 
 -------
-     1
-    -2
-     3
-(3 rows)
-
     RESULT
+    values.each do |value|
+      output << (" %5d\n" % value)
+    end
+    output << "(#{values.size} rows)\n"
+    output << "\n"
+    assert_equal([output, ""], run_sql("SELECT * FROM data"))
   end
 end

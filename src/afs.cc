@@ -732,6 +732,12 @@ class ArrowPGValueConverter : public arrow::ArrayVisitor {
 	{
 	}
 
+	arrow::Status Visit(const arrow::Int8Array& array)
+	{
+		datum_ = Int8GetDatum(array.Value(i_row_));
+		return arrow::Status::OK();
+	}
+
 	arrow::Status Visit(const arrow::Int32Array& array)
 	{
 		datum_ = Int32GetDatum(array.Value(i_row_));
@@ -815,6 +821,9 @@ class PreparedStatement {
 		{
 			switch (field->type()->id())
 			{
+				case arrow::Type::INT8:
+					pgTypes.push_back(INT2OID);
+					break;
 				case arrow::Type::INT32:
 					pgTypes.push_back(INT4OID);
 					break;
