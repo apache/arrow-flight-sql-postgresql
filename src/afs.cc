@@ -725,6 +725,52 @@ class WorkerProcessor : public Processor {
 	dshash_table* sessions_;
 };
 
+class ArrowPGTypeConverter : public arrow::TypeVisitor {
+   public:
+	explicit ArrowPGTypeConverter() : oid_(InvalidOid) {}
+
+	Oid oid() const { return oid_; }
+
+	arrow::Status Visit(const arrow::Int8Type& type)
+	{
+		oid_ = INT2OID;
+		return arrow::Status::OK();
+	}
+
+	arrow::Status Visit(const arrow::UInt8Type& type)
+	{
+		oid_ = INT2OID;
+		return arrow::Status::OK();
+	}
+
+	arrow::Status Visit(const arrow::Int16Type& type)
+	{
+		oid_ = INT2OID;
+		return arrow::Status::OK();
+	}
+
+	arrow::Status Visit(const arrow::UInt16Type& type)
+	{
+		oid_ = INT2OID;
+		return arrow::Status::OK();
+	}
+
+	arrow::Status Visit(const arrow::Int32Type& type)
+	{
+		oid_ = INT4OID;
+		return arrow::Status::OK();
+	}
+
+	arrow::Status Visit(const arrow::Int64Type& type)
+	{
+		oid_ = INT8OID;
+		return arrow::Status::OK();
+	}
+
+   private:
+	Oid oid_;
+};
+
 class ArrowPGValueConverter : public arrow::ArrayVisitor {
    public:
 	explicit ArrowPGValueConverter(int64_t i_row, Datum& datum)
@@ -747,6 +793,12 @@ class ArrowPGValueConverter : public arrow::ArrayVisitor {
 	arrow::Status Visit(const arrow::Int16Array& array)
 	{
 		datum_ = Int16GetDatum(array.Value(i_row_));
+		return arrow::Status::OK();
+	}
+
+	arrow::Status Visit(const arrow::UInt16Array& array)
+	{
+		datum_ = UInt16GetDatum(array.Value(i_row_));
 		return arrow::Status::OK();
 	}
 
@@ -878,25 +930,11 @@ class PreparedStatement {
 		const std::shared_ptr<arrow::Schema>& schema)
 	{
 		std::vector<Oid> pgTypes;
+		ArrowPGTypeConverter converter;
 		for (const auto& field : schema->fields())
 		{
-			switch (field->type()->id())
-			{
-				case arrow::Type::INT8:
-				case arrow::Type::UINT8:
-				case arrow::Type::INT16:
-					pgTypes.push_back(INT2OID);
-					break;
-				case arrow::Type::INT32:
-					pgTypes.push_back(INT4OID);
-					break;
-				case arrow::Type::INT64:
-					pgTypes.push_back(INT8OID);
-					break;
-				default:
-					return arrow::Status::NotImplemented(
-						"Unsupported Apache Arrow type: ", field->type()->name());
-			}
+			ARROW_RETURN_NOT_OK(field->type()->Accept(&converter));
+			pgTypes.push_back(converter.oid());
 		}
 		return std::move(pgTypes);
 	}
