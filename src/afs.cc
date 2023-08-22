@@ -738,6 +738,12 @@ class ArrowPGValueConverter : public arrow::ArrayVisitor {
 		return arrow::Status::OK();
 	}
 
+	arrow::Status Visit(const arrow::UInt8Array& array)
+	{
+		datum_ = UInt8GetDatum(array.Value(i_row_));
+		return arrow::Status::OK();
+	}
+
 	arrow::Status Visit(const arrow::Int16Array& array)
 	{
 		datum_ = Int16GetDatum(array.Value(i_row_));
@@ -877,6 +883,7 @@ class PreparedStatement {
 			switch (field->type()->id())
 			{
 				case arrow::Type::INT8:
+				case arrow::Type::UINT8:
 				case arrow::Type::INT16:
 					pgTypes.push_back(INT2OID);
 					break;
