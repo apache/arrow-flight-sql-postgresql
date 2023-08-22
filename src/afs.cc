@@ -798,6 +798,12 @@ class ArrowPGTypeConverter : public arrow::TypeVisitor {
 		return arrow::Status::OK();
 	}
 
+	arrow::Status Visit(const arrow::BinaryType& type)
+	{
+		oid_ = BYTEAOID;
+		return arrow::Status::OK();
+	}
+
    private:
 	Oid oid_;
 };
@@ -876,6 +882,13 @@ class ArrowPGValueConverter : public arrow::ArrayVisitor {
 		return arrow::Status::OK();
 	}
 
+	arrow::Status Visit(const arrow::BinaryArray& array)
+	{
+		auto value = array.GetView(i_row_);
+		datum_ = PointerGetDatum(cstring_to_text_with_len(value.data(), value.length()));
+		return arrow::Status::OK();
+	}
+
    private:
 	int64_t i_row_;
 	Datum& datum_;
@@ -902,6 +915,8 @@ class PGArrowValueConverter : public arrow::ArrayVisitor {
 			case VARCHAROID:
 			case TEXTOID:
 				return arrow::utf8();
+			case BYTEAOID:
+				return arrow::binary();
 			default:
 				return arrow::Status::NotImplemented("Unsupported PostgreSQL type: ",
 				                                     attribute_->atttypid);
@@ -930,6 +945,9 @@ class PGArrowValueConverter : public arrow::ArrayVisitor {
 			case VARCHAROID:
 			case TEXTOID:
 				return static_cast<arrow::StringBuilder*>(builder)->Append(
+					VARDATA_ANY(datum), VARSIZE_ANY_EXHDR(datum));
+			case BYTEAOID:
+				return static_cast<arrow::BinaryBuilder*>(builder)->Append(
 					VARDATA_ANY(datum), VARSIZE_ANY_EXHDR(datum));
 			default:
 				return arrow::Status::NotImplemented("Unsupported PostgreSQL type: ",
