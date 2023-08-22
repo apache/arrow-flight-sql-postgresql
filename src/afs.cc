@@ -785,6 +785,12 @@ class ArrowPGTypeConverter : public arrow::TypeVisitor {
 		return arrow::Status::OK();
 	}
 
+	arrow::Status Visit(const arrow::DoubleType& type)
+	{
+		oid_ = FLOAT8OID;
+		return arrow::Status::OK();
+	}
+
    private:
 	Oid oid_;
 };
@@ -850,6 +856,12 @@ class ArrowPGValueConverter : public arrow::ArrayVisitor {
 		return arrow::Status::OK();
 	}
 
+	arrow::Status Visit(const arrow::DoubleArray& array)
+	{
+		datum_ = Float8GetDatum(array.Value(i_row_));
+		return arrow::Status::OK();
+	}
+
    private:
 	int64_t i_row_;
 	Datum& datum_;
@@ -871,6 +883,8 @@ class PGArrowValueConverter : public arrow::ArrayVisitor {
 				return arrow::int64();
 			case FLOAT4OID:
 				return arrow::float32();
+			case FLOAT8OID:
+				return arrow::float64();
 			default:
 				return arrow::Status::NotImplemented("Unsupported PostgreSQL type: ",
 				                                     attribute_->atttypid);
@@ -893,6 +907,9 @@ class PGArrowValueConverter : public arrow::ArrayVisitor {
 			case FLOAT4OID:
 				return static_cast<arrow::FloatBuilder*>(builder)->Append(
 					DatumGetFloat4(datum));
+			case FLOAT8OID:
+				return static_cast<arrow::DoubleBuilder*>(builder)->Append(
+					DatumGetFloat8(datum));
 			default:
 				return arrow::Status::NotImplemented("Unsupported PostgreSQL type: ",
 				                                     attribute_->atttypid);
