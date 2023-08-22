@@ -29,16 +29,27 @@ class FlightSQLTest < Test::Unit::TestCase
     flight_client.authenticate_basic(user, password, @options)
   end
 
+  def to_sql(value)
+    case value
+    when String
+      "'#{value.gsub(/'/, "''")}'"
+    else
+      value.to_s
+    end
+  end
+
   data("int16",  ["smallint",         Arrow::Int16Array, -2])
   data("int32",  ["integer",          Arrow::Int32Array, -2])
   data("int64",  ["bigint",           Arrow::Int64Array, -2])
   data("float",  ["real",             Arrow::FloatArray, -2.2])
   data("double", ["double precision", Arrow::DoubleArray, -2.2])
+  data("string - text",    ["text",        Arrow::StringArray, "b"])
+  data("string - varchar", ["varchar(10)", Arrow::StringArray, "b"])
   def test_select_type
     pg_type, array_class, value = data
     values = array_class.new([value])
-    info = flight_sql_client.execute("SELECT #{value}::#{pg_type} AS value",
-                                     @options)
+    sql = "SELECT #{to_sql(value)}::#{pg_type} AS value"
+    info = flight_sql_client.execute(sql, @options)
     assert_equal(Arrow::Schema.new(value: values.value_data_type),
                  info.get_schema)
     endpoint = info.endpoints.first
@@ -93,6 +104,8 @@ SELECT * FROM data
   data("uint64", ["bigint",   Arrow::UInt64Array, [1,  2, 3]])
   data("float",  ["real",             Arrow::FloatArray,  [1.1, -2.2, 3.3]])
   data("double", ["double precision", Arrow::DoubleArray, [1.1, -2.2, 3.3]])
+  data("string - text",    ["text",        Arrow::StringArray, ["a", "b", "c"]])
+  data("string - varchar", ["varchar(10)", Arrow::StringArray, ["a", "b", "c"]])
   def test_insert_type
     unless flight_sql_client.respond_to?(:prepare)
       omit("red-arrow-flight-sql 14.0.0 or later is required")
@@ -115,10 +128,13 @@ SELECT * FROM data
 -------
     RESULT
     values.each do |value|
-      if value.is_a?(Float)
+      case value
+      when Float
         output << (" %5.1f\n" % value)
-      else
+      when Integer
         output << (" %5d\n" % value)
+      else
+        output << (" %s\n" % value)
       end
     end
     output << "(#{values.size} rows)\n"
