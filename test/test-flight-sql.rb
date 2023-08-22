@@ -29,10 +29,11 @@ class FlightSQLTest < Test::Unit::TestCase
     flight_client.authenticate_basic(user, password, @options)
   end
 
-  data("int16", ["smallint", Arrow::Int16Array, -2])
-  data("int32", ["integer",  Arrow::Int32Array, -2])
-  data("int64", ["bigint",   Arrow::Int64Array, -2])
-  data("float", ["real"  ,   Arrow::FloatArray, -2.2])
+  data("int16",  ["smallint",         Arrow::Int16Array, -2])
+  data("int32",  ["integer",          Arrow::Int32Array, -2])
+  data("int64",  ["bigint",           Arrow::Int64Array, -2])
+  data("float",  ["real",             Arrow::FloatArray, -2.2])
+  data("double", ["double precision", Arrow::DoubleArray, -2.2])
   def test_select_type
     pg_type, array_class, value = data
     values = array_class.new([value])
@@ -90,7 +91,8 @@ SELECT * FROM data
   data("uint16", ["smallint", Arrow::UInt16Array, [1,  2, 3]])
   data("uint32", ["integer",  Arrow::UInt32Array, [1,  2, 3]])
   data("uint64", ["bigint",   Arrow::UInt64Array, [1,  2, 3]])
-  data("float",  ["real",     Arrow::FloatArray,  [1.1, -2.2, 3.3]])
+  data("float",  ["real",             Arrow::FloatArray,  [1.1, -2.2, 3.3]])
+  data("double", ["double precision", Arrow::DoubleArray, [1.1, -2.2, 3.3]])
   def test_insert_type
     unless flight_sql_client.respond_to?(:prepare)
       omit("red-arrow-flight-sql 14.0.0 or later is required")
