@@ -761,6 +761,12 @@ class ArrowPGTypeConverter : public arrow::TypeVisitor {
 		return arrow::Status::OK();
 	}
 
+	arrow::Status Visit(const arrow::UInt32Type& type)
+	{
+		oid_ = INT4OID;
+		return arrow::Status::OK();
+	}
+
 	arrow::Status Visit(const arrow::Int64Type& type)
 	{
 		oid_ = INT8OID;
@@ -805,6 +811,12 @@ class ArrowPGValueConverter : public arrow::ArrayVisitor {
 	arrow::Status Visit(const arrow::Int32Array& array)
 	{
 		datum_ = Int32GetDatum(array.Value(i_row_));
+		return arrow::Status::OK();
+	}
+
+	arrow::Status Visit(const arrow::UInt32Array& array)
+	{
+		datum_ = UInt32GetDatum(array.Value(i_row_));
 		return arrow::Status::OK();
 	}
 
