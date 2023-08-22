@@ -750,6 +750,12 @@ class ArrowPGValueConverter : public arrow::ArrayVisitor {
 		return arrow::Status::OK();
 	}
 
+	arrow::Status Visit(const arrow::Int64Array& array)
+	{
+		datum_ = Int64GetDatum(array.Value(i_row_));
+		return arrow::Status::OK();
+	}
+
    private:
 	int64_t i_row_;
 	Datum& datum_;
@@ -767,6 +773,8 @@ class PGArrowValueConverter : public arrow::ArrayVisitor {
 				return arrow::int16();
 			case INT4OID:
 				return arrow::int32();
+			case INT8OID:
+				return arrow::int64();
 			default:
 				return arrow::Status::NotImplemented("Unsupported PostgreSQL type: ",
 				                                     attribute_->atttypid);
@@ -783,6 +791,9 @@ class PGArrowValueConverter : public arrow::ArrayVisitor {
 			case INT4OID:
 				return static_cast<arrow::Int32Builder*>(builder)->Append(
 					DatumGetInt32(datum));
+			case INT8OID:
+				return static_cast<arrow::Int64Builder*>(builder)->Append(
+					DatumGetInt64(datum));
 			default:
 				return arrow::Status::NotImplemented("Unsupported PostgreSQL type: ",
 				                                     attribute_->atttypid);
@@ -871,6 +882,9 @@ class PreparedStatement {
 					break;
 				case arrow::Type::INT32:
 					pgTypes.push_back(INT4OID);
+					break;
+				case arrow::Type::INT64:
+					pgTypes.push_back(INT8OID);
 					break;
 				default:
 					return arrow::Status::NotImplemented(
