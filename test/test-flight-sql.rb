@@ -29,13 +29,18 @@ class FlightSQLTest < Test::Unit::TestCase
     flight_client.authenticate_basic(user, password, @options)
   end
 
-  def test_select_int32
-    info = flight_sql_client.execute("SELECT 1 AS value", @options)
-    assert_equal(Arrow::Schema.new(value: :int32),
+  data("int16", ["smallint", Arrow::Int16Array, -2])
+  data("int32", ["integer",  Arrow::Int32Array, -2])
+  def test_select_type
+    pg_type, array_class, value = data
+    values = array_class.new([value])
+    info = flight_sql_client.execute("SELECT #{value}::#{pg_type} AS value",
+                                     @options)
+    assert_equal(Arrow::Schema.new(value: values.value_data_type),
                  info.get_schema)
     endpoint = info.endpoints.first
     reader = flight_sql_client.do_get(endpoint.ticket, @options)
-    assert_equal(Arrow::Table.new(value: Arrow::Int32Array.new([1])),
+    assert_equal(Arrow::Table.new(value: values),
                  reader.read_all)
   end
 
@@ -75,8 +80,9 @@ SELECT * FROM data
     RESULT
   end
 
-  data("int8", ["smallint", Arrow::Int8Array, [1, -2, 3]])
-  data("int32", ["integer", Arrow::Int32Array, [1, -2, 3]])
+  data("int8",  ["smallint", Arrow::Int8Array,  [1, -2, 3]])
+  data("int16", ["smallint", Arrow::Int16Array, [1, -2, 3]])
+  data("int32", ["integer",  Arrow::Int32Array, [1, -2, 3]])
   def test_insert_type
     unless flight_sql_client.respond_to?(:prepare)
       omit("red-arrow-flight-sql 14.0.0 or later is required")

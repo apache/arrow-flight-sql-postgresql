@@ -738,6 +738,12 @@ class ArrowPGValueConverter : public arrow::ArrayVisitor {
 		return arrow::Status::OK();
 	}
 
+	arrow::Status Visit(const arrow::Int16Array& array)
+	{
+		datum_ = Int16GetDatum(array.Value(i_row_));
+		return arrow::Status::OK();
+	}
+
 	arrow::Status Visit(const arrow::Int32Array& array)
 	{
 		datum_ = Int32GetDatum(array.Value(i_row_));
@@ -747,6 +753,44 @@ class ArrowPGValueConverter : public arrow::ArrayVisitor {
    private:
 	int64_t i_row_;
 	Datum& datum_;
+};
+
+class PGArrowValueConverter : public arrow::ArrayVisitor {
+   public:
+	explicit PGArrowValueConverter(Form_pg_attribute attribute) : attribute_(attribute) {}
+
+	arrow::Result<std::shared_ptr<arrow::DataType>> convert_type() const
+	{
+		switch (attribute_->atttypid)
+		{
+			case INT2OID:
+				return arrow::int16();
+			case INT4OID:
+				return arrow::int32();
+			default:
+				return arrow::Status::NotImplemented("Unsupported PostgreSQL type: ",
+				                                     attribute_->atttypid);
+		}
+	}
+
+	arrow::Status convert_value(arrow::ArrayBuilder* builder, Datum datum) const
+	{
+		switch (attribute_->atttypid)
+		{
+			case INT2OID:
+				return static_cast<arrow::Int16Builder*>(builder)->Append(
+					DatumGetInt16(datum));
+			case INT4OID:
+				return static_cast<arrow::Int32Builder*>(builder)->Append(
+					DatumGetInt32(datum));
+			default:
+				return arrow::Status::NotImplemented("Unsupported PostgreSQL type: ",
+				                                     attribute_->atttypid);
+		}
+	}
+
+   private:
+	Form_pg_attribute attribute_;
 };
 
 class PreparedStatement {
@@ -822,6 +866,7 @@ class PreparedStatement {
 			switch (field->type()->id())
 			{
 				case arrow::Type::INT8:
+				case arrow::Type::INT16:
 					pgTypes.push_back(INT2OID);
 					break;
 				case arrow::Type::INT32:
@@ -1233,22 +1278,16 @@ class Executor : public WorkerProcessor {
 	arrow::Status write()
 	{
 		SharedRingBufferOutputStream output(this, session_);
+		std::vector<PGArrowValueConverter> converters;
 		std::vector<std::shared_ptr<arrow::Field>> fields;
 		for (int i = 0; i < SPI_tuptable->tupdesc->natts; ++i)
 		{
 			auto attribute = TupleDescAttr(SPI_tuptable->tupdesc, i);
-			std::shared_ptr<arrow::DataType> type;
-			switch (attribute->atttypid)
-			{
-				case INT4OID:
-					type = arrow::int32();
-					break;
-				default:
-					return arrow::Status::NotImplemented("Unsupported PostgreSQL type: ",
-					                                     attribute->atttypid);
-			}
-			fields.push_back(
-				arrow::field(NameStr(attribute->attname), type, !attribute->attnotnull));
+			converters.emplace_back(attribute);
+			const auto& converter = converters[converters.size() - 1];
+			ARROW_ASSIGN_OR_RAISE(auto type, converter.convert_type());
+			fields.push_back(arrow::field(
+				NameStr(attribute->attname), std::move(type), !attribute->attnotnull));
 		}
 		auto schema = arrow::schema(fields);
 		ARROW_ASSIGN_OR_RAISE(
@@ -1293,16 +1332,15 @@ class Executor : public WorkerProcessor {
 				                           SPI_tuptable->tupdesc,
 				                           iAttribute + 1,
 				                           &isNull);
+				auto arrayBuilder = builder->GetField(iAttribute);
 				if (isNull)
 				{
-					auto arrayBuilder = builder->GetField(iAttribute);
 					ARROW_RETURN_NOT_OK(arrayBuilder->AppendNull());
 				}
 				else
 				{
-					auto arrayBuilder =
-						builder->GetFieldAs<arrow::Int32Builder>(iAttribute);
-					ARROW_RETURN_NOT_OK(arrayBuilder->Append(DatumGetInt32(datum)));
+					ARROW_RETURN_NOT_OK(
+						converters[iAttribute].convert_value(arrayBuilder, datum));
 				}
 			}
 
