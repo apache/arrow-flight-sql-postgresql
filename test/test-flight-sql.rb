@@ -87,7 +87,8 @@ SELECT * FROM data
   data("int64",  ["bigint",   Arrow::Int64Array,  [1, -2, 3]])
   data("uint8",  ["smallint", Arrow::UInt8Array,  [1,  2, 3]])
   data("uint16", ["smallint", Arrow::UInt16Array, [1,  2, 3]])
-  data("uint32", ["smallint", Arrow::UInt32Array, [1,  2, 3]])
+  data("uint32", ["integer",  Arrow::UInt32Array, [1,  2, 3]])
+  data("uint64", ["bigint",   Arrow::UInt64Array, [1,  2, 3]])
   def test_insert_type
     unless flight_sql_client.respond_to?(:prepare)
       omit("red-arrow-flight-sql 14.0.0 or later is required")
