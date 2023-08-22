@@ -35,6 +35,7 @@ extern "C"
 #include <storage/procsignal.h>
 #include <storage/shmem.h>
 #include <utils/backend_status.h>
+#include <utils/builtins.h>
 #include <utils/dsa.h>
 #include <utils/guc.h>
 #include <utils/memutils.h>
@@ -791,6 +792,12 @@ class ArrowPGTypeConverter : public arrow::TypeVisitor {
 		return arrow::Status::OK();
 	}
 
+	arrow::Status Visit(const arrow::StringType& type)
+	{
+		oid_ = TEXTOID;
+		return arrow::Status::OK();
+	}
+
    private:
 	Oid oid_;
 };
@@ -862,6 +869,13 @@ class ArrowPGValueConverter : public arrow::ArrayVisitor {
 		return arrow::Status::OK();
 	}
 
+	arrow::Status Visit(const arrow::StringArray& array)
+	{
+		auto value = array.GetView(i_row_);
+		datum_ = PointerGetDatum(cstring_to_text_with_len(value.data(), value.length()));
+		return arrow::Status::OK();
+	}
+
    private:
 	int64_t i_row_;
 	Datum& datum_;
@@ -885,6 +899,9 @@ class PGArrowValueConverter : public arrow::ArrayVisitor {
 				return arrow::float32();
 			case FLOAT8OID:
 				return arrow::float64();
+			case VARCHAROID:
+			case TEXTOID:
+				return arrow::utf8();
 			default:
 				return arrow::Status::NotImplemented("Unsupported PostgreSQL type: ",
 				                                     attribute_->atttypid);
@@ -910,6 +927,10 @@ class PGArrowValueConverter : public arrow::ArrayVisitor {
 			case FLOAT8OID:
 				return static_cast<arrow::DoubleBuilder*>(builder)->Append(
 					DatumGetFloat8(datum));
+			case VARCHAROID:
+			case TEXTOID:
+				return static_cast<arrow::StringBuilder*>(builder)->Append(
+					VARDATA_ANY(datum), VARSIZE_ANY_EXHDR(datum));
 			default:
 				return arrow::Status::NotImplemented("Unsupported PostgreSQL type: ",
 				                                     attribute_->atttypid);
