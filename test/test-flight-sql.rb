@@ -31,6 +31,8 @@ class FlightSQLTest < Test::Unit::TestCase
 
   def to_sql(value)
     case value
+    when Time
+      "'#{value.dup.utc.strftime("%Y-%m-%d %H:%M:%S.%6N")}'"
     when String
       sql_string = "'"
       value.each_char do |char|
@@ -54,17 +56,21 @@ class FlightSQLTest < Test::Unit::TestCase
     end
   end
 
-  data("int16",  ["smallint",         Arrow::Int16Array, -2])
-  data("int32",  ["integer",          Arrow::Int32Array, -2])
-  data("int64",  ["bigint",           Arrow::Int64Array, -2])
-  data("float",  ["real",             Arrow::FloatArray, -2.2])
-  data("double", ["double precision", Arrow::DoubleArray, -2.2])
-  data("string - text",    ["text",        Arrow::StringArray, "b"])
-  data("string - varchar", ["varchar(10)", Arrow::StringArray, "b"])
-  data("binary", ["bytea", Arrow::BinaryArray, "\x0".b])
+  timestamp_value = Time.parse("2023-08-02T18:03:13.526572321Z").utc
+
+  data("int16",  ["smallint",         :int16, -2])
+  data("int32",  ["integer",          :int32, -2])
+  data("int64",  ["bigint",           :int64, -2])
+  data("float",  ["real",             :float, -2.2])
+  data("double", ["double precision", :double, -2.2])
+  data("string - text",    ["text",        :string, "b"])
+  data("string - varchar", ["varchar(10)", :string, "b"])
+  data("binary", ["bytea", :binary, "\x0".b])
+  data("timestamp", ["timestamp", [:timestamp, :micro], timestamp_value])
   def test_select_type
-    pg_type, array_class, value = data
-    values = array_class.new([value])
+    pg_type, data_type, value = data
+    data_type = Arrow::DataType.resolve(data_type)
+    values = data_type.build_array([value])
     sql = "SELECT #{to_sql(value)}::#{pg_type} AS value"
     info = flight_sql_client.execute(sql, @options)
     assert_equal(Arrow::Schema.new(value: values.value_data_type),
@@ -111,39 +117,72 @@ SELECT * FROM data
     RESULT
   end
 
-  data("int8",   ["smallint", Arrow::Int8Array,   [1, -2, 3]])
-  data("int16",  ["smallint", Arrow::Int16Array,  [1, -2, 3]])
-  data("int32",  ["integer",  Arrow::Int32Array,  [1, -2, 3]])
-  data("int64",  ["bigint",   Arrow::Int64Array,  [1, -2, 3]])
-  data("uint8",  ["smallint", Arrow::UInt8Array,  [1,  2, 3]])
-  data("uint16", ["smallint", Arrow::UInt16Array, [1,  2, 3]])
-  data("uint32", ["integer",  Arrow::UInt32Array, [1,  2, 3]])
-  data("uint64", ["bigint",   Arrow::UInt64Array, [1,  2, 3]])
-  data("float",  ["real",             Arrow::FloatArray,  [1.1, -2.2, 3.3]])
-  data("double", ["double precision", Arrow::DoubleArray, [1.1, -2.2, 3.3]])
-  data("string - text",    ["text",        Arrow::StringArray, ["a", "b", "c"]])
-  data("string - varchar", ["varchar(10)", Arrow::StringArray, ["a", "b", "c"]])
-  data("binary", ["bytea", Arrow::BinaryArray, ["\x0".b, "\x1".b, "\x2".b]])
+  timestamp_values = [
+    Time.parse("2023-08-02T18:03:13.526572321Z").utc,
+    Time.parse("2023-08-02T18:04:13.526572321Z").utc,
+    Time.parse("2023-08-02T18:05:13.526572321Z").utc,
+  ]
+
+  data("int8",   ["smallint", :int8,   [1, -2, 3]])
+  data("int16",  ["smallint", :int16,  [1, -2, 3]])
+  data("int32",  ["integer",  :int32,  [1, -2, 3]])
+  data("int64",  ["bigint",   :int64,  [1, -2, 3]])
+  data("uint8",  ["smallint", :uint8,  [1,  2, 3]])
+  data("uint16", ["smallint", :uint16, [1,  2, 3]])
+  data("uint32", ["integer",  :uint32, [1,  2, 3]])
+  data("uint64", ["bigint",   :uint64, [1,  2, 3]])
+  data("float",  ["real",             :float,  [1.1, -2.2, 3.3]])
+  data("double", ["double precision", :double, [1.1, -2.2, 3.3]])
+  data("string - text",    ["text",        :string, ["a", "b", "c"]])
+  data("string - varchar", ["varchar(10)", :string, ["a", "b", "c"]])
+  data("binary", ["bytea", :binary, ["\x0".b, "\x1".b, "\x2".b]])
+  data("timestamp(second)",
+       ["timestamp", [:timestamp, :second], timestamp_values])
+  data("timestamp(milli)",
+       ["timestamp", [:timestamp, :milli], timestamp_values])
+  data("timestamp(micro)",
+       ["timestamp", [:timestamp, :micro], timestamp_values])
+  data("timestamp(nano)",
+       ["timestamp", [:timestamp, :nano], timestamp_values])
   def test_insert_type
     unless flight_sql_client.respond_to?(:prepare)
       omit("red-arrow-flight-sql 14.0.0 or later is required")
     end
 
-    pg_type, array_class, values = data
+    pg_type, data_type, values = data
+    data_type = Arrow::DataType.resolve(data_type)
     run_sql("CREATE TABLE data (value #{pg_type})")
 
+    array = data_type.build_array(values)
     flight_sql_client.prepare("INSERT INTO data VALUES ($1)",
                               @options) do |statement|
-      array = array_class.new(values)
       statement.record_batch = Arrow::RecordBatch.new(value: array)
       n_changed_records = statement.execute_update(@options)
-      assert_equal(3, n_changed_records)
+      assert_equal(values.size, n_changed_records)
     end
 
+    case values.first
+    when Time
+      case data_type.unit
+      when Arrow::TimeUnit::SECOND
+        value_size = "1970-01-01 00:00:00".size
+        strftime_format = "%Y-%m-%d %H:%M:%S"
+      when Arrow::TimeUnit::MILLI
+        value_size = "1970-01-01 00:00:00.000".size
+        strftime_format = "%Y-%m-%d %H:%M:%S.%3N"
+      when Arrow::TimeUnit::MICRO, Arrow::TimeUnit::NANO
+        value_size = "1970-01-01 00:00:00.000000".size
+        strftime_format = "%Y-%m-%d %H:%M:%S.%6N"
+      else
+        raise "unsupported: #{data_type.unit.inspect}"
+      end
+    else
+      value_size = 5
+    end
     output = <<-RESULT
 SELECT * FROM data
- value 
--------
+ #{"value".center(value_size)} 
+-#{"-" * value_size}-
     RESULT
     values.each do |value|
       case value
@@ -151,6 +190,8 @@ SELECT * FROM data
         output << (" %5.1f\n" % value)
       when Integer
         output << (" %5d\n" % value)
+      when Time
+        output << " #{value.strftime(strftime_format)}\n"
       else
         if value.encoding == "".b.encoding
           output << " "

@@ -40,6 +40,7 @@ extern "C"
 #include <utils/guc.h>
 #include <utils/memutils.h>
 #include <utils/snapmgr.h>
+#include <utils/timestamp.h>
 #include <utils/wait_event.h>
 }
 
@@ -804,6 +805,12 @@ class ArrowPGTypeConverter : public arrow::TypeVisitor {
 		return arrow::Status::OK();
 	}
 
+	arrow::Status Visit(const arrow::TimestampType& type)
+	{
+		oid_ = TIMESTAMPOID;
+		return arrow::Status::OK();
+	}
+
    private:
 	Oid oid_;
 };
@@ -889,6 +896,34 @@ class ArrowPGValueConverter : public arrow::ArrayVisitor {
 		return arrow::Status::OK();
 	}
 
+	arrow::Status Visit(const arrow::TimestampArray& array)
+	{
+		const auto unit =
+			std::static_pointer_cast<arrow::TimestampType>(array.type())->unit();
+		Timestamp value = 0;
+		switch (unit)
+		{
+			case arrow::TimeUnit::SECOND:
+				value += array.Value(i_row_) * 1000000;
+				break;
+			case arrow::TimeUnit::MILLI:
+				value += array.Value(i_row_) * 1000;
+				break;
+			case arrow::TimeUnit::MICRO:
+				value += array.Value(i_row_);
+				break;
+			case arrow::TimeUnit::NANO:
+				value += array.Value(i_row_) / 1000;
+				break;
+			default:
+				return arrow::Status::NotImplemented("Unsupported time unit: ", unit);
+		}
+		// Arrow uses UNIX epoch (1970-01-01) but PostgreSQL uses 2000-01-01.
+		value -= (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) * USECS_PER_DAY;
+		datum_ = TimestampGetDatum(value);
+		return arrow::Status::OK();
+	}
+
    private:
 	int64_t i_row_;
 	Datum& datum_;
@@ -917,6 +952,8 @@ class PGArrowValueConverter : public arrow::ArrayVisitor {
 				return arrow::utf8();
 			case BYTEAOID:
 				return arrow::binary();
+			case TIMESTAMPOID:
+				return arrow::timestamp(arrow::TimeUnit::MICRO);
 			default:
 				return arrow::Status::NotImplemented("Unsupported PostgreSQL type: ",
 				                                     attribute_->atttypid);
@@ -949,6 +986,12 @@ class PGArrowValueConverter : public arrow::ArrayVisitor {
 			case BYTEAOID:
 				return static_cast<arrow::BinaryBuilder*>(builder)->Append(
 					VARDATA_ANY(datum), VARSIZE_ANY_EXHDR(datum));
+			case TIMESTAMPOID:
+				// Arrow uses UNIX epoch (1970-01-01) but PostgreSQL
+				// uses 2000-01-01.
+				return static_cast<arrow::TimestampBuilder*>(builder)->Append(
+					DatumGetTimestamp(datum) +
+					(POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) * USECS_PER_DAY);
 			default:
 				return arrow::Status::NotImplemented("Unsupported PostgreSQL type: ",
 				                                     attribute_->atttypid);
