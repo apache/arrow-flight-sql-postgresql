@@ -18,6 +18,7 @@
 require "fileutils"
 require "socket"
 require "tempfile"
+require "time"
 
 require "arrow-flight-sql"
 
