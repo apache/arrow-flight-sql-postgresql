@@ -50,6 +50,7 @@ jobs:
           sudo apt update
           sudo apt install -y -V \
             libarrow-flight-sql-glib-dev \
+            meson \
             ninja-build
       - name: Install PostgreSQL
         run: |
@@ -66,12 +67,12 @@ jobs:
             postgresql-server-dev-${{ matrix.postgresql-version }}
       - name: Install Apache Arrow Flight SQL adapter
         run: |
-          cmake \
-            -S . \
-            -B build \
-            -DCMAKE_INSTALL_PREFIX=/usr \
-            -DCMAKE_BUILD_TYPE=Debug \
-            -GNinja
+          meson \
+            setup \
+            --prefix=/tmp/local \
+            -Dbenchmark=true \
+            -Dpostgresql_dir=$(pg_config --binddir)/.. \
+            build
           ninja -C build
           sudo ninja -C build install
       - uses: ruby/setup-ruby@v1

@@ -1201,7 +1201,7 @@ class Executor : public WorkerProcessor {
 				case Action::UpdatePreparedStatement:
 					update_prepared_statement();
 					break;
-				deafult:
+				default:
 					Processor::signaled();
 					break;
 			}
@@ -1516,7 +1516,7 @@ class Executor : public WorkerProcessor {
 			  tag_,
 			  iTuple,
 			  SPI_processed);
-			for (uint64_t iAttribute = 0; iAttribute < SPI_tuptable->tupdesc->natts;
+			for (int iAttribute = 0; iAttribute < SPI_tuptable->tupdesc->natts;
 			     ++iAttribute)
 			{
 				P("%s: %s: write: data: record batch: %d/%d: %d/%d",
@@ -1784,7 +1784,7 @@ SharedRingBufferOutputStream::Write(const void* data, int64_t nBytes)
 	}
 	if (ARROW_PREDICT_TRUE(nBytes > 0))
 	{
-		auto buffer = std::move(processor_->create_shared_ring_buffer(session_));
+		auto buffer = processor_->create_shared_ring_buffer(session_);
 		size_t rest = static_cast<size_t>(nBytes);
 		while (true)
 		{
@@ -1886,11 +1886,10 @@ class Proxy : public WorkerProcessor {
 			kill(session->executorPID, SIGUSR1);
 		}
 		{
-			auto buffer = std::move(create_shared_ring_buffer(session));
+			auto buffer = create_shared_ring_buffer(session);
 			std::unique_lock<std::mutex> lock(mutex_);
 			conditionVariable_.wait(lock, [&] {
 				P("%s: %s: %s: wait", Tag, tag_, tag);
-				pid_t pid = 0;
 				return DsaPointerIsValid(session->errorMessage) || buffer.size() > 0;
 			});
 		}
@@ -1901,12 +1900,14 @@ class Proxy : public WorkerProcessor {
 		P("%s: %s: %s: open", Tag, tag_, tag);
 		auto schema = read_schema(session, tag);
 		P("%s: %s: %s: schema", Tag, tag_, tag);
-		return std::move(schema);
+		return schema;
 	}
 
 	arrow::Result<int64_t> update(uint64_t sessionID, const std::string& query)
 	{
+#ifdef AFS_DEBUG
 		const char* tag = "update";
+#endif
 		auto session = find_session(sessionID);
 		SessionReleaser sessionReleaser(sessions_, session);
 		lock_acquire();
@@ -1947,7 +1948,9 @@ class Proxy : public WorkerProcessor {
 	arrow::Result<arrow::flight::sql::ActionCreatePreparedStatementResult> prepare(
 		uint64_t sessionID, const std::string& query)
 	{
+#ifdef AFS_DEBUG
 		const char* tag = "prepare";
+#endif
 		auto session = find_session(sessionID);
 		SessionReleaser sessionReleaser(sessions_, session);
 		lock_acquire();
@@ -1980,12 +1983,14 @@ class Proxy : public WorkerProcessor {
 			std::move(handle),
 		};
 		P("%s: %s: %s: done", Tag, tag_, tag);
-		return std::move(result);
+		return result;
 	}
 
 	arrow::Status close_prepared_statement(uint64_t sessionID, const std::string& handle)
 	{
+#ifdef AFS_DEBUG
 		const char* tag = "close prepared statement";
+#endif
 		auto session = find_session(sessionID);
 		SessionReleaser sessionReleaser(sessions_, session);
 		lock_acquire();
@@ -2018,7 +2023,9 @@ class Proxy : public WorkerProcessor {
 		const std::string& handle,
 		arrow::flight::FlightMessageReader* reader)
 	{
+#ifdef AFS_DEBUG
 		const char* tag = "update prepared statement";
+#endif
 		auto session = find_session(sessionID);
 		SessionReleaser sessionReleaser(sessions_, session);
 		lock_acquire();
@@ -2155,7 +2162,7 @@ SharedRingBufferInputStream::Read(int64_t nBytes, void* out)
 		return arrow::Status::IOError(std::string(Tag) + ": " + processor_->tag() +
 		                              ": SharedRingBufferInputStream is closed");
 	}
-	auto buffer = std::move(processor_->create_shared_ring_buffer(session_));
+	auto buffer = processor_->create_shared_ring_buffer(session_);
 	size_t rest = static_cast<size_t>(nBytes);
 	while (true)
 	{

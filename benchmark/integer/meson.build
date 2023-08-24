@@ -15,5 +15,5 @@
 # specific language governing permissions and limitations
 # under the License.
 
-with section("markup"):
-  first_comment_is_literal = True
+libpq = dependency('libpq')
+executable('select', 'select.c', dependencies: [libpq])
