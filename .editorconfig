@@ -25,7 +25,7 @@ indent_style = tab
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.sh]
+[{*.sh,meson.build,meson_options.txt}]
 
 end_of_line = lf
 indent_size = 2

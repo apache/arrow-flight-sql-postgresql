@@ -15,5 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-add_executable(select select.c)
-target_link_libraries(select libpq)
+option('benchmark',
+       type: 'boolean',
+       value: false,
+       description: 'Build benchmark programs')
+
+option('postgresql_dir',
+       type: 'string',
+       value: '',
+       description: 'PostgreSQL binary directory')
