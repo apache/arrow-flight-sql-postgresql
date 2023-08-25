@@ -171,7 +171,7 @@ jobs:
           password: ${{ github.token }}
       - name: Build
         run: |
-          pushd ${BASE_NAME}/packages/${PACKAGE}
+          pushd ${BASE_NAME}/package/${PACKAGE}
           if [ "${GITHUB_REF_TYPE}" != "tag" ]; then
             rake version:update
           fi
@@ -181,7 +181,7 @@ jobs:
       - name: Prepare artifacts
         run: |
           cp -a \
-            ${BASE_NAME}/packages/${PACKAGE}/${TASK_NAMESPACE}/repositories/${DISTRIBUTION} \
+            ${BASE_NAME}/package/${PACKAGE}/${TASK_NAMESPACE}/repositories/${DISTRIBUTION} \
             ./
           tar czf ${{ matrix.target }}.tar.gz ${DISTRIBUTION}
       - name: Upload artifacts
@@ -200,7 +200,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
       - name: Push Docker image
         run: |
-          pushd ${BASE_NAME}/packages/${PACKAGE}
+          pushd ${BASE_NAME}/package/${PACKAGE}
           rake docker:push || :
           popd
       - name: Test
@@ -210,6 +210,6 @@ jobs:
             --rm \
             --volume ${PWD}:/host \
             ${ARCHITECTURE}/${DISTRIBUTION}:${DISTRIBUTION_VERSION} \
-            /host/packages/${TASK_NAMESPACE}/test.sh \
-            packages/${PACKAGE}/${TASK_NAMESPACE}/repositories
+            /host/package/${TASK_NAMESPACE}/test.sh \
+            package/${PACKAGE}/${TASK_NAMESPACE}/repositories
           popd

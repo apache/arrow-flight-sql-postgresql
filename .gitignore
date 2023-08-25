@@ -23,8 +23,9 @@
 /dev/release/dist
 /dev/release/filtered_rat.txt
 /dev/release/rat.xml
-/packages/*/*.tar.gz
-/packages/*/apt/build.sh
-/packages/*/apt/env.sh
-/packages/*/apt/repositories/
-/packages/*/apt/tmp/
+/doc/build/
+/package/*/*.tar.gz
+/package/*/apt/build.sh
+/package/*/apt/env.sh
+/package/*/apt/repositories/
+/package/*/apt/tmp/

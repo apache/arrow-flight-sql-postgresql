@@ -15,17 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-option('benchmark',
-       type: 'boolean',
-       value: false,
-       description: 'Build benchmark programs')
-
-option('example',
-       type: 'boolean',
-       value: false,
-       description: 'Build example programs')
-
-option('postgresql_dir',
-       type: 'string',
-       value: '',
-       description: 'PostgreSQL binary directory')
+myst-parser[linkify]
+pydata_sphinx_theme
+sphinx_inline_tabs

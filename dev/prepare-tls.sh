@@ -30,58 +30,64 @@ server_name=$2
 client_name=$3
 
 openssl req \
+        -addext "subjectAltName = DNS:${root_name}" \
+        -keyout root.key \
         -new \
         -nodes \
-        -text \
         -out root.csr \
-        -keyout root.key \
-        -subj "/CN=${root_name}"
+        -subj "/CN=${root_name}" \
+        -text
 chmod go-rwx root.key
 
 openssl x509 \
-        -req \
-        -in root.csr \
-        -text \
+        -copy_extensions copy \
         -days 3650 \
-        -extfile /etc/ssl/openssl.cnf \
         -extensions v3_ca \
+        -extfile /etc/ssl/openssl.cnf \
+        -in root.csr \
+        -out root.crt \
+        -req \
         -signkey root.key \
-        -out root.crt
+        -text
 
 openssl req \
+        -addext "subjectAltName = DNS:${server_name}" \
+        -keyout server.key \
         -new \
         -nodes \
-        -text \
         -out server.csr \
-        -keyout server.key \
-        -subj "/CN=${server_name}"
+        -subj "/CN=${server_name}" \
+        -text
 chmod og-rwx server.key
 
 openssl x509 \
-        -req \
-        -in server.csr \
-        -text \
-        -days 365 \
         -CA root.crt \
-        -CAkey root.key \
         -CAcreateserial \
-        -out server.crt
+        -CAkey root.key \
+        -copy_extensions copy \
+        -days 365 \
+        -in server.csr \
+        -out server.crt \
+        -req \
+        -text
 
 openssl req \
+        -addext "subjectAltName = DNS:${client_name}" \
+        -keyout client.key \
         -new \
         -nodes \
-        -text \
         -out client.csr \
-        -keyout client.key \
-        -subj "/CN=${client_name}"
+        -subj "/CN=${client_name}" \
+        -text
 chmod og-rwx client.key
 
 openssl x509 \
-        -req \
-        -in client.csr \
-        -text \
-        -days 365 \
         -CA root.crt \
-        -CAkey root.key \
         -CAcreateserial \
-        -out client.crt
+        -CAkey root.key \
+        -copy_extensions copy \
+        -days 365 \
+        -in client.csr \
+        -out client.crt \
+        -req \
+        -text

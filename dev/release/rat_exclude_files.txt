@@ -21,3 +21,4 @@ compile_commands.json
 dev/release/apache-rat-*.jar
 dev/release/filtered_rat.txt
 dev/release/rat.xml
+doc/source/_static/switcher.json
