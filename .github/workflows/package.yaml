@@ -1,0 +1,215 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+name: Package
+
+on:
+  pull_request:
+  push:
+
+concurrency:
+  group: ${{ github.head_ref || github.sha }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    if: >-
+      github.ref_type == 'tag' && !contains(github.ref_name, 'rc')
+    name: Release
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Make RC GA
+        run: |
+          rc_tag=$(gh release list ${GITHUB_REF_NAME} | \
+                     cut -d'	' -f3 | \
+                     grep -rc | \
+                     head -n1)
+          title="$(gh release view ${rc_tag} --json name --jq .name | \
+                     sed -E -e 's/ RC[0-9]+$//')"
+          gh release view ${rc_tag} --json body --jq .body > release-note.md
+          mkdir rc_artifacts
+          gh release download ${rc_tag} --dir rc_artifacts
+          gh release create ${GITHUB_REF_NAME} \
+            --notes-file release-note.md \
+            --title "${title}" \
+            rc_artifacts/*
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  source:
+    name: Source
+    if: >-
+      github.ref_type == 'branch' ||
+        (github.ref_type == 'tag' && contains(github.ref_name, 'rc'))
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ruby
+      - name: Build archive
+        run: |
+          rake dist
+      - uses: actions/upload-artifact@v3
+        with:
+          name: source
+          path: apache-arrow-flight-sql-postgresql-*.tar.gz
+      - name: Upload to release
+        if: |
+          github.ref_type == 'tag'
+        run: |
+          ruby \
+            -e 'print("## Apache Arrow Flight SQL adapter for PostgreSQL "); \
+                puts(ARGF.read.split(/^## /)[1]. \
+                       gsub(/ {.+?}/, ""). \
+                       gsub(/\[(.+?)\]\[.+?\]/) {$1})' \
+            docs/source/news.md > release-note.md
+          rc=${GITHUB_REF_NAME:#*-rc}
+          title="$(head -n1 release-note.md | sed -e 's/^## //') RC${rc}"
+          tail -n +2 release-note.md > release-note-without-version.md
+          gh release create ${GITHUB_REF_NAME} \
+            --prerelease \
+            --notes-file release-note-without-version.md \
+            --title "${title}" \
+            apache-arrow-flight-sql-postgresql-*.tar.gz
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  linux:
+    name: Linux
+    if: >-
+      github.ref_type == 'branch' ||
+        (github.ref_type == 'tag' && contains(github.ref_name, 'rc'))
+    needs:
+      - source
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - "postgresql-15-pgdg-debian-bookworm-amd64"
+          - "postgresql-15-pgdg-ubuntu-jammy-amd64"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: apache/arrow
+          path: arrow
+      - uses: actions/download-artifact@v3
+        with:
+          name: source
+      - name: Prepare
+        run: |
+          BASE_NAME=apache-arrow-flight-sql-postgresql
+          echo "BASE_NAME=${BASE_NAME}" >> $GITHUB_ENV
+          echo "ARROW_SOURCE=$(pwd)/arrow" >> $GITHUB_ENV
+          full_target=${{ matrix.target }}
+          # postgresql-15-pgdg-debian-bookworm-amd64 ->
+          # postgresql-15-pgdg
+          PACKAGE=${full_target%-pgdg-*}-pgdg
+          echo "PACKAGE=${PACKAGE}" >> $GITHUB_ENV
+          # postgresql-15-pgdg-debian-bookworm-amd64 ->
+          # debian-bookworm-amd64
+          PACKAGE_TARGET=${full_target#*-pgdg-}
+          echo "APT_TARGETS=${PACKAGE_TARGET}" >> $GITHUB_ENV
+          echo "YUM_TARGETS=${PACKAGE_TARGET}" >> $GITHUB_ENV
+          case ${PACKAGE_TARGET} in
+            almalinux-*)
+              echo "TASK_NAMESPACE=yum" >> $GITHUB_ENV
+              ;;
+            debian-*|ubuntu-*)
+              echo "TASK_NAMESPACE=apt" >> $GITHUB_ENV
+              ;;
+          esac
+          DISTRIBUTION=${PACKAGE_TARGET%%-*}
+          echo "DISTRIBUTION=${DISTRIBUTION}" >> $GITHUB_ENV
+          DISTRIBUTION_VERSION=${PACKAGE_TARGET#*-}
+          DISTRIBUTION_VERSION=${DISTRIBUTION_VERSION%-*}
+          echo "DISTRIBUTION_VERSION=${DISTRIBUTION_VERSION}" >> $GITHUB_ENV
+          ARCHITECTURE=${PACKAGE_TARGET##*-}
+          echo "ARCHITECTURE=${ARCHITECTURE}" >> $GITHUB_ENV
+
+          source_archive=$(echo ${BASE_NAME}-*.tar.gz)
+          VERSION=${source_archive#${BASE_NAME}-}
+          VERSION=${VERSION%.tar.gz}
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+      - name: Extract source archive
+        run: |
+          tar xf ${BASE_NAME}-${VERSION}.tar.gz
+          ln -s ${BASE_NAME}-${VERSION} ${BASE_NAME}
+          mv ${BASE_NAME}-${VERSION}.tar.gz ${BASE_NAME}/
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ruby
+      - name: Login to GitHub Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Build
+        run: |
+          pushd ${BASE_NAME}/packages/${PACKAGE}
+          if [ "${GITHUB_REF_TYPE}" != "tag" ]; then
+            rake version:update
+          fi
+          rake docker:pull || :
+          rake --trace ${TASK_NAMESPACE}:build
+          popd
+      - name: Prepare artifacts
+        run: |
+          cp -a \
+            ${BASE_NAME}/packages/${PACKAGE}/${TASK_NAMESPACE}/repositories/${DISTRIBUTION} \
+            ./
+          tar czf ${{ matrix.target }}.tar.gz ${DISTRIBUTION}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.target }}
+          path: |
+            ${{ matrix.target }}.tar.gz
+      - name: Upload to release
+        if: |
+          github.ref_type == 'tag'
+        run: |
+          gh release upload ${GITHUB_REF_NAME} \
+            ${{ matrix.target }}.tar.gz
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Push Docker image
+        run: |
+          pushd ${BASE_NAME}/packages/${PACKAGE}
+          rake docker:push || :
+          popd
+      - name: Test
+        run: |
+          pushd ${BASE_NAME}
+          docker run \
+            --rm \
+            --volume ${PWD}:/host \
+            ${ARCHITECTURE}/${DISTRIBUTION}:${DISTRIBUTION_VERSION} \
+            /host/packages/${TASK_NAMESPACE}/test.sh \
+            packages/${PACKAGE}/${TASK_NAMESPACE}/repositories
+          popd

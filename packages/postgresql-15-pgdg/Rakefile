@@ -1,3 +1,5 @@
+# -*- ruby -*-
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,16 +17,16 @@
 # specific language governing permissions and limitations
 # under the License.
 
-/*.tar.gz
-/.cache/
-/Gemfile.lock
-/compile_commands.json
-/dev/release/apache-rat-0.13.jar
-/dev/release/dist
-/dev/release/filtered_rat.txt
-/dev/release/rat.xml
-/packages/*/*.tar.gz
-/packages/*/apt/build.sh
-/packages/*/apt/env.sh
-/packages/*/apt/repositories/
-/packages/*/apt/tmp/
+require_relative "../arrow-flight-sql-postgresql-package-task"
+
+class PostgreSQL15PGDGPackageTask < ArrowFlightSQLPostgreSQLPackageTask
+  def initialize
+    super("postgresql-15-pgdg-apache-arrow-flight-sql")
+  end
+
+  def enable_yum?
+    false
+  end
+end
+
+PostgreSQL15PGDGPackageTask.new.define

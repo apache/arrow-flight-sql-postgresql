@@ -15,16 +15,36 @@
 # specific language governing permissions and limitations
 # under the License.
 
-/*.tar.gz
-/.cache/
-/Gemfile.lock
-/compile_commands.json
-/dev/release/apache-rat-0.13.jar
-/dev/release/dist
-/dev/release/filtered_rat.txt
-/dev/release/rat.xml
-/packages/*/*.tar.gz
-/packages/*/apt/build.sh
-/packages/*/apt/env.sh
-/packages/*/apt/repositories/
-/packages/*/apt/tmp/
+require "pathname"
+
+module Helper
+  module_function
+  def top_source_dir
+    Pathname(__dir__)
+  end
+
+  def detect_version
+    version_env = ENV["VERSION"]
+    return version_env if version_env
+
+    meson_build = top_source_dir / "meson.build"
+    meson_build.read[/^\s*version: '(.+)'/, 1]
+  end
+
+  def detect_release_time
+    release_time_env = ENV["RELEASE_TIME"]
+    if release_time_env
+      Time.parse(release_time_env).utc
+    else
+      Time.now.utc
+    end
+  end
+
+  def archive_base_name(version)
+    "apache-arrow-flight-sql-postgresql-#{version}"
+  end
+
+  def archive_name(version)
+    "#{archive_base_name(version)}.tar.gz"
+  end
+end

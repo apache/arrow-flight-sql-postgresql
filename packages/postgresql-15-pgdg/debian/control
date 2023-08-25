@@ -15,16 +15,27 @@
 # specific language governing permissions and limitations
 # under the License.
 
-/*.tar.gz
-/.cache/
-/Gemfile.lock
-/compile_commands.json
-/dev/release/apache-rat-0.13.jar
-/dev/release/dist
-/dev/release/filtered_rat.txt
-/dev/release/rat.xml
-/packages/*/*.tar.gz
-/packages/*/apt/build.sh
-/packages/*/apt/env.sh
-/packages/*/apt/repositories/
-/packages/*/apt/tmp/
+Source: postgresql-15-pgdg-apache-arrow-flight-sql
+Section: database
+Priority: optional
+Maintainer: Apache Arrow Developers <dev@arrow.apache.org>
+Build-Depends:
+  cmake,
+  debhelper-compat (= 13),
+  libarrow-flight-sql-dev,
+  libkrb5-dev,
+  meson,
+  postgresql-server-dev-15
+Standards-Version: 4.6.0
+Homepage: https://arrow.apache.org/flight-sql-postgresql/
+
+Package: postgresql-15-pgdg-apache-arrow-flight-sql
+Architecture: any
+Depends:
+  ${misc:Depends},
+  ${shlibs:Depends},
+  postgresql-15
+Description: Apache Arrow Flight SQL adapter for PostgreSQL
+ .
+ It provides a PostgreSQL module that adds Apache Arrow Flight SQL
+ interface to PostgreSQL.

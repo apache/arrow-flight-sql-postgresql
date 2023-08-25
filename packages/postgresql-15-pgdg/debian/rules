@@ -1,3 +1,6 @@
+#!/usr/bin/make -f
+# -*- makefile-gmake -*-
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,16 +18,20 @@
 # specific language governing permissions and limitations
 # under the License.
 
-/*.tar.gz
-/.cache/
-/Gemfile.lock
-/compile_commands.json
-/dev/release/apache-rat-0.13.jar
-/dev/release/dist
-/dev/release/filtered_rat.txt
-/dev/release/rat.xml
-/packages/*/*.tar.gz
-/packages/*/apt/build.sh
-/packages/*/apt/env.sh
-/packages/*/apt/repositories/
-/packages/*/apt/tmp/
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+export DEB_BUILD_MAINT_OPTIONS=reproducible=-timeless
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	dh_auto_configure			\
+	  --buildsystem=meson+ninja		\
+	  --					\
+	  --buildtype=debugoptimized
+
+override_dh_auto_test:
