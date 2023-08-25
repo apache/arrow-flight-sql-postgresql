@@ -79,6 +79,7 @@ jobs:
         with:
           ruby-version: ruby
           bundler-cache: true
+          cache-version: 1
       - name: Test
         run: |
           PATH=$(pg_config --bindir):$PATH bundle exec test/run.rb

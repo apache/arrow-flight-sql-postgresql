@@ -1,3 +1,5 @@
+# -*- ruby -*-
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,16 +17,18 @@
 # specific language governing permissions and limitations
 # under the License.
 
-/*.tar.gz
-/.cache/
-/Gemfile.lock
-/compile_commands.json
-/dev/release/apache-rat-0.13.jar
-/dev/release/dist
-/dev/release/filtered_rat.txt
-/dev/release/rat.xml
-/packages/*/*.tar.gz
-/packages/*/apt/build.sh
-/packages/*/apt/env.sh
-/packages/*/apt/repositories/
-/packages/*/apt/tmp/
+require_relative "helper"
+
+version = Helper.detect_version
+archive_base_name = "apache-arrow-flight-sql-postgresql-#{version}"
+archive_name = "#{archive_base_name}.tar.gz"
+
+file archive_name do
+  sh("git",
+     "archive",
+     "HEAD",
+     "--output", archive_name,
+     "--prefix", "#{archive_base_name}/")
+end
+desc "Create #{archive_name}"
+task :dist => archive_name
