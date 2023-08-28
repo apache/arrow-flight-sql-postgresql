@@ -1,4 +1,3 @@
-<!doctype html>
 <!--
   Licensed to the Apache Software Foundation (ASF) under one
   or more contributor license agreements.  See the NOTICE file
@@ -17,9 +16,20 @@
   specific language governing permissions and limitations
   under the License.
 -->
-<html>
-  <head>
-    <meta http-equiv="Refresh" content="0; url=current/" />
-  </head>
-  <body></body>
-</html>
+
+# Apache Arrow Flight SQL adapter for PostgreSQL
+
+This is a PostgreSQL extension that adds an [Apache Arrow Flight
+SQL][apache-arrow-flight-sql] endpoint to PostgreSQL.
+
+See https://arrow.apache.org/flight-sql-postgresql/ for details.
+
+## How to contribute
+
+See [CONTRIBUTING.md](CONTRIBUTION.md).
+
+## License
+
+The Apache License 2.0. See [LICENSE.txt](LICENSE.txt) for details.
+
+[apache-arrow-flight-sql]: https://arrow.apache.org/docs/format/FlightSql.html

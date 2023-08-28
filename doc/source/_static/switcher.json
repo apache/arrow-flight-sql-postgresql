@@ -1,17 +1,17 @@
 [
-	{
-		"name": "devel",
-		"url": "https://arrow.apache.org/flight-sql-postgresql/devel/",
-		"version": "devel"
-	},
-	{
-		"name": "current",
-		"url": "https://arrow.apache.org/flight-sql-postgresql/current/",
-		"version": "current"
-	},
-	{
-		"name": "0.1.0",
-		"url": "https://arrow.apache.org/flight-sql-postgresql/0.1.0/",
-		"version": "0.1.0"
-	}
+  {
+    "name": "devel",
+    "url": "https://arrow.apache.org/flight-sql-postgresql/devel/",
+    "version": "devel"
+  },
+  {
+    "name": "current",
+    "url": "https://arrow.apache.org/flight-sql-postgresql/current/",
+    "version": "current"
+  },
+  {
+    "name": "0.1.0",
+    "url": "https://arrow.apache.org/flight-sql-postgresql/0.1.0/",
+    "version": "0.1.0"
+  }
 ]

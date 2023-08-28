@@ -23,8 +23,8 @@
 
 Supported versions:
 
-* Debian GNU/Linux bookworm
-* Ubuntu 22.04 LTS
+- Debian GNU/Linux bookworm
+- Ubuntu 22.04 LTS
 
 Enable the PostgreSQL APT repository:
 
@@ -63,11 +63,11 @@ See {doc}`configuration` how to configure Apache Arrow Flight SQL adapter for Po
 You need to install the followings before you build Apache Arrow
 Flight SQL adapter for PostgreSQL:
 
-* PostgreSQL: https://www.postgresql.org/download/
-* Apache Arrow C++ with Flight SQL support: https://arrow.apache.org/install/
-* Meson: https://mesonbuild.com/
-* Ninja: https://ninja-build.org/
-* C++ compiler such as `g++` and `clang++
+- PostgreSQL: https://www.postgresql.org/download/
+- Apache Arrow C++ with Flight SQL support: https://arrow.apache.org/install/
+- Meson: https://mesonbuild.com/
+- Ninja: https://ninja-build.org/
+- C++ compiler such as `g++` and `clang++
 
 Here are command lines to build Apache Arrow Flight SQL adapter for
 PostgreSQL:

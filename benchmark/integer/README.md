@@ -40,9 +40,9 @@ It also inserts 10M records with random integers to the table.
 
 Run the following programs:
 
-* `select.rb`: It uses Apache Arrow Flight SQL
-* `select`: It uses PostgreSQL's C API
-* `select.sql`: You need to use `psql` to run this
+- `select.rb`: It uses Apache Arrow Flight SQL
+- `select`: It uses PostgreSQL's C API
+- `select.sql`: You need to use `psql` to run this
 
 All of them just run `SELECT * FROM data`.
 
@@ -50,14 +50,14 @@ All of them just run `SELECT * FROM data`.
 
 Here is a benchmark result on the following environment:
 
-* OS: Debian GNU/Linux sid
-* CPU: AMD Ryzen 9 3900X 12-Core Processor
-* Memory: 64GiB
-* PostgreSQL: 16 (not released yet)
+- OS: Debian GNU/Linux sid
+- CPU: AMD Ryzen 9 3900X 12-Core Processor
+- Memory: 64GiB
+- PostgreSQL: 16 (not released yet)
   019f8624664dbf1e25e2bd721c7e99822812d109
-* Apache Arrow: 12.0.0-SNAPSHOT
+- Apache Arrow: 12.0.0-SNAPSHOT
   237705bf17486cfc35ab7d1ddfe59dd60f042ab8
-* Apache Arrow Flight SQL PostgreSQL adapter:
+- Apache Arrow Flight SQL PostgreSQL adapter:
   0.1.0 (not released yet)
   120e7bbd3fd580c892c988499d488c7e8b34efe2
 
@@ -80,4 +80,3 @@ Here is a benchmark result on the following environment:
 | Apache Arrow Flight SQL | C     | psql  |
 | ----------------------- | ----- | ----- |
 | 0.653                   | 1.154 | 1.128 |
-
