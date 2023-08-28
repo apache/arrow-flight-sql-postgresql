@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <!--
   Licensed to the Apache Software Foundation (ASF) under one
   or more contributor license agreements.  See the NOTICE file
@@ -17,10 +16,25 @@
   specific language governing permissions and limitations
   under the License.
 -->
-<html>
-  <head>
-    <meta http-equiv="Refresh" content="0; url=current/">
-  </head>
-  <body>
-  </body>
-</html>
+
+# Apache Arrow Flight SQL adapter for PostgreSQL
+
+```{toctree}
+:maxdepth: 1
+release-notes.md
+```
+
+```{toctree}
+:maxdepth: 2
+overview.md
+install.md
+configuration.md
+client.md
+```
+
+
+## Indices and tables
+
+* {ref}`genindex`
+* {ref}`modindex`
+* {ref}`search`
