@@ -15,17 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 
-option('benchmark',
-       type: 'boolean',
-       value: false,
-       description: 'Build benchmark programs')
+adbc_driver_manager = dependency(
+  'AdbcDriverManager',
+  method: 'cmake',
+  modules: ['AdbcDriverManager::adbc_driver_manager_shared'],
+  required: false
+)
 
-option('example',
-       type: 'boolean',
-       value: false,
-       description: 'Build example programs')
-
-option('postgresql_dir',
-       type: 'string',
-       value: '',
-       description: 'PostgreSQL binary directory')
+if adbc_driver_manager.found()
+  executable('authenticate-password',
+             'authenticate-password.c',
+             dependencies: [adbc_driver_manager])
+endif

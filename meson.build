@@ -43,6 +43,18 @@ arrow_flight_sql = dependency(
   method: 'cmake',
   modules: ['ArrowFlightSql::arrow_flight_sql_shared']
 )
+if arrow_flight_sql.version().version_compare('<14.0.0')
+  # Workaround for a bug that ArrowFlightSQL::arrow_flight_sql_shared
+  # doesn't depend on ArrowFlight::arrow_flight_shared.
+  arrow_flight = dependency(
+    'ArrowFlight',
+    method: 'cmake',
+    modules: ['ArrowFlight::arrow_flight_shared']
+  )
+  arrow_flight_sql = declare_dependency(
+    dependencies: [arrow_flight_sql, arrow_flight],
+  )
+endif
 postgresql = declare_dependency(
   compile_args: run_command(pg_config,
                             '--cflags_sl',
@@ -52,7 +64,7 @@ postgresql = declare_dependency(
                                    check: true).stdout().strip(),
 )
 install_dir = run_command(pg_config, '--pkglibdir', check: true).stdout().strip()
-arrow_flight_sql = shared_module(
+afs = shared_module(
   'arrow_flight_sql',
   'src/afs.cc',
   dependencies: [arrow_flight_sql, postgresql],
@@ -70,4 +82,9 @@ install_data(
 
 if get_option('benchmark')
   subdir('benchmark/integer')
+endif
+
+if get_option('example')
+  subdir('example/adbc')
+  subdir('example/flight-sql')
 endif

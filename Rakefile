@@ -32,3 +32,55 @@ file archive_name do
 end
 desc "Create #{archive_name}"
 task :dist => archive_name
+
+namespace :doc do
+  desc "Build HTML documentation"
+  task :html do
+    sh("sphinx-build",
+       "-b", "html",
+       "-j", "auto",
+       "doc/source",
+       "doc/build")
+  end
+
+  desc "Publish HTML documentation"
+  task :publish do
+    site = ENV["ASF_SITE"] || "site"
+    asf_yaml = File.expand_path(".asf.yaml")
+    cleaned_doc = File.expand_path("doc/build.clean")
+    index_html = File.expand_path("doc/index.html")
+
+    rm_rf(cleaned_doc)
+    cp_r("doc/build", cleaned_doc)
+    rm_f("#{cleaned_doc}/.buildinfo")
+    rm_rf("#{cleaned_doc}/.doctrees")
+
+    cd("site") do
+      cp(asf_yaml, ".")
+      sh("git", "add", "--force", ".asf.yaml")
+      cp(index_html, ".")
+      sh("git", "add", "--force", "index.html")
+      if ENV["GITHUB_REF_TYPE"] == "tag"
+        new_version = ENV["GITHUB_REF_NAME"].gsub(/-rc\d+\z/, "")
+      else
+        new_version = "devel"
+      end
+      rm_rf(new_version)
+      cp_r(cleaned_doc, new_version)
+      sh("git", "add", "--force", new_version)
+      unless new_version == "devel"
+        rm_rf("current")
+        cp_r(cleaned_doc, "current")
+        sh("git", "add", "--force", "current")
+      end
+      sh("git", "commit", "-m", "Publish", "--allow-empty")
+      unless ENV["GITHUB_EVENT_NAME"] == "pull_request"
+        dry_run = []
+        if ENV["GITHUB_REF_TYPE"] != "tag" and ENV["GITHUB_REF_NAME"] != "main"
+          dry_run << "--dry-run"
+        end
+        sh("git", "push", *dry_run, "origin", "asf-site:asf-site")
+      end
+    end
+  end
+end

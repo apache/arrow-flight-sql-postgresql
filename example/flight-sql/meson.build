@@ -15,17 +15,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-option('benchmark',
-       type: 'boolean',
-       value: false,
-       description: 'Build benchmark programs')
+executable('authenticate-password',
+           'authenticate-password.cc',
+           dependencies: [arrow_flight_sql])
 
-option('example',
-       type: 'boolean',
-       value: false,
-       description: 'Build example programs')
+executable('query-ad-hoc',
+           'query-ad-hoc.cc',
+           dependencies: [arrow_flight_sql])
 
-option('postgresql_dir',
-       type: 'string',
-       value: '',
-       description: 'PostgreSQL binary directory')
+executable('query-prepared',
+           'query-prepared.cc',
+           dependencies: [arrow_flight_sql])

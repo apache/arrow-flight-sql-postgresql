@@ -32,7 +32,7 @@ shared_preload_libraries = 'arrow_flight_sql'
 Prepare database:
 
 ```bash
-psql postgres -c '\i benchmark/integer/prepare1.sql'
+psql postgres -c '\i benchmark/integer/prepare-1M.sql'
 ```
 
 It creates `afs_benchmark` database and `data` table in the database.
