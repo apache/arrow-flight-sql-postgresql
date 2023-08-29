@@ -50,7 +50,7 @@ Note that you also need to setup client side. For example, see the
 following documentations for the C++ implementation of Apache Arrow
 Flight SQL client:
 
-* [Enable TLS][arrow-flight-tls]
+- [Enable TLS][arrow-flight-tls]
 
 ```{note}
 mTLS (mutual-TLS) isn't implemented yet. If you're interested in mTLS,
@@ -72,7 +72,7 @@ automatically.
 
 The maximum number of rows per record batch.
 
-The default is 1 * 1024 * 1024 rows.
+The default is 1 \* 1024 \* 1024 rows.
 
 If this value is small, total data exchange time will be slower.
 
