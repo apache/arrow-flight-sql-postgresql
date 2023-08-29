@@ -23,4 +23,4 @@
 
 ### Improvements
 
-  * The initial release!
+- The initial release!
