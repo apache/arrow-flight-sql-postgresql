@@ -17,6 +17,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
+require "tmpdir"
+
 require_relative "helper"
 
 version = Helper.detect_version
@@ -33,53 +35,67 @@ end
 desc "Create #{archive_name}"
 task :dist => archive_name
 
+def build_doc(output_directory, release: nil, for_publish: false)
+  env = {}
+  env["RELEASE"] = release if release
+  sh(env,
+     "sphinx-build",
+     "-b", "html",
+     "-j", "auto",
+     "doc/source",
+     output_directory)
+  if for_publish
+    rm_f("#{output_directory}/.buildinfo")
+    rm_rf("#{output_directory}/.doctrees")
+  end
+end
+
 namespace :doc do
   desc "Build HTML documentation"
   task :html do
-    sh("sphinx-build",
-       "-b", "html",
-       "-j", "auto",
-       "doc/source",
-       "doc/build")
+    build_doc("doc/build")
   end
 
   desc "Publish HTML documentation"
   task :publish do
     site = ENV["ASF_SITE"] || "site"
     asf_yaml = File.expand_path(".asf.yaml")
-    cleaned_doc = File.expand_path("doc/build.clean")
     index_html = File.expand_path("doc/index.html")
 
-    rm_rf(cleaned_doc)
-    cp_r("doc/build", cleaned_doc)
-    rm_f("#{cleaned_doc}/.buildinfo")
-    rm_rf("#{cleaned_doc}/.doctrees")
-
-    cd("site") do
-      cp(asf_yaml, ".")
-      sh("git", "add", "--force", ".asf.yaml")
-      cp(index_html, ".")
-      sh("git", "add", "--force", "index.html")
-      if ENV["GITHUB_REF_TYPE"] == "tag"
+    Dir.mktmpdir do |tmp|
+      is_release = (ENV["GITHUB_REF_TYPE"] == "tag")
+      if is_release
         new_version = ENV["GITHUB_REF_NAME"].gsub(/-rc\d+\z/, "")
+        new_doc = "#{tmp}/new"
+        build_doc(new_doc, for_publish: true)
+        current_doc = "#{tmp}/current"
+        build_doc(current_doc, release: "current", for_publish: true)
       else
-        new_version = "devel"
+        devel_doc = "#{tmp}/devel"
+        build_doc(devel_doc, release: "devel", for_publish: true)
       end
-      rm_rf(new_version)
-      cp_r(cleaned_doc, new_version)
-      sh("git", "add", "--force", new_version)
-      unless new_version == "devel"
-        rm_rf("current")
-        cp_r(cleaned_doc, "current")
-        sh("git", "add", "--force", "current")
+
+      add = lambda do |source, destination|
+        rm_rf(destination)
+        cp_r(source, destination)
+        sh("git", "add", "--force", destination)
       end
-      sh("git", "commit", "-m", "Publish", "--allow-empty")
-      unless ENV["GITHUB_EVENT_NAME"] == "pull_request"
-        dry_run = []
-        if ENV["GITHUB_REF_TYPE"] != "tag" and ENV["GITHUB_REF_NAME"] != "main"
-          dry_run << "--dry-run"
+
+      cd("site") do
+        add.call(asf_yaml, ".asf.yaml")
+        add.call(index_html, "index.html")
+        if is_release
+          add.call(new_doc, new_version)
+          add.call(current_doc, "current")
+        else
+          add.call(devel_doc, "devel")
         end
-        sh("git", "push", *dry_run, "origin", "asf-site:asf-site")
+        sh("git", "commit", "-m", "Publish", "--allow-empty")
+        unless ENV["GITHUB_EVENT_NAME"] == "pull_request"
+          dry_run = []
+          dry_run << "--dry-run" unless ENV["GITHUB_REF_NAME"] == "main"
+          sh("git", "push", *dry_run, "origin", "asf-site:asf-site")
+        end
       end
     end
   end
