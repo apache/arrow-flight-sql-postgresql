@@ -51,12 +51,22 @@ jobs:
         with:
           name: doc
           path: doc/build
-      - uses: actions/checkout@v3
+      - name: Prepare destination branch
+        uses: actions/checkout@v3
+        if: github.repository_owner == 'apache'
         with:
           fetch-depth: 0
           path: site
           persist-credentials: true
           ref: asf-site
+      - name: Prepare destination branch for fork
+        if: github.repository_owner != 'apache'
+        run: |
+          mkdir -p site.repository
+          pushd site.repository
+          git init --initial-branch=asf-site
+          popd
+          git clone file://${PWD}/site.repository/.git site
       - name: Publish
         run: |
           git config --global user.name 'github-actions[bot]'

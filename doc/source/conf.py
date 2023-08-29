@@ -34,7 +34,7 @@ if not version:
     meson_build_path = pathlib.Path(__file__).parent / '../../meson.build'
     with open(meson_build_path) as meson_build:
         version = re.search('version: \'(.+?)\'', meson_build.read())[1]
-    release = version
+    release = os.environ.get('RELEASE', version)
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
