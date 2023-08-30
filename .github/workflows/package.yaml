@@ -40,9 +40,9 @@ jobs:
       - uses: actions/checkout@v3
       - name: Make RC GA
         run: |
-          rc_tag=$(gh release list ${GITHUB_REF_NAME} | \
+          rc_tag=$(gh release list | \
                      cut -d'	' -f3 | \
-                     grep -rc | \
+                     grep -F "${GITHUB_REF_NAME}-rc" | \
                      head -n1)
           title="$(gh release view ${rc_tag} --json name --jq .name | \
                      sed -E -e 's/ RC[0-9]+$//')"
@@ -52,6 +52,7 @@ jobs:
           gh release create ${GITHUB_REF_NAME} \
             --notes-file release-note.md \
             --title "${title}" \
+            --verify-tag \
             rc_artifacts/*
         env:
           GH_TOKEN: ${{ github.token }}
@@ -84,8 +85,8 @@ jobs:
                 puts(ARGF.read.split(/^## /)[1]. \
                        gsub(/ {.+?}/, ""). \
                        gsub(/\[(.+?)\]\[.+?\]/) {$1})' \
-            docs/source/news.md > release-note.md
-          rc=${GITHUB_REF_NAME:#*-rc}
+            doc/source/release-notes.md > release-note.md
+          rc=${GITHUB_REF_NAME#*-rc}
           title="$(head -n1 release-note.md | sed -e 's/^## //') RC${rc}"
           tail -n +2 release-note.md > release-note-without-version.md
           gh release create ${GITHUB_REF_NAME} \
@@ -109,8 +110,8 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - "postgresql-15-pgdg-debian-bookworm-amd64"
-          - "postgresql-15-pgdg-ubuntu-jammy-amd64"
+          - "debian-bookworm-amd64-postgresql-15-pgdg"
+          - "ubuntu-jammy-amd64-postgresql-15-pgdg"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -125,13 +126,13 @@ jobs:
           echo "BASE_NAME=${BASE_NAME}" >> $GITHUB_ENV
           echo "ARROW_SOURCE=$(pwd)/arrow" >> $GITHUB_ENV
           full_target=${{ matrix.target }}
-          # postgresql-15-pgdg-debian-bookworm-amd64 ->
+          # debian-bookworm-amd64-postgresql-15-pgdg ->
           # postgresql-15-pgdg
-          PACKAGE=${full_target%-pgdg-*}-pgdg
+          PACKAGE=postgresql-${full_target#*-postgresql-}
           echo "PACKAGE=${PACKAGE}" >> $GITHUB_ENV
-          # postgresql-15-pgdg-debian-bookworm-amd64 ->
+          # debian-bookworm-amd64-postgresql-15-pgdg ->
           # debian-bookworm-amd64
-          PACKAGE_TARGET=${full_target#*-pgdg-}
+          PACKAGE_TARGET=${full_target%-postgresql-*}
           echo "APT_TARGETS=${PACKAGE_TARGET}" >> $GITHUB_ENV
           echo "YUM_TARGETS=${PACKAGE_TARGET}" >> $GITHUB_ENV
           case ${PACKAGE_TARGET} in
@@ -194,7 +195,7 @@ jobs:
         if: |
           github.ref_type == 'tag'
         run: |
-          gh release upload ${GITHUB_REF_NAME} \
+          gh release upload --repo ${GITHUB_REPOSITORY} ${GITHUB_REF_NAME} \
             ${{ matrix.target }}.tar.gz
         env:
           GH_TOKEN: ${{ github.token }}

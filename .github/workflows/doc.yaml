@@ -64,9 +64,9 @@ jobs:
         run: |
           mkdir -p site.repository
           pushd site.repository
-          git init --initial-branch=asf-site
+          git init --initial-branch=asf-site --bare
           popd
-          git clone file://${PWD}/site.repository/.git site
+          git clone file://${PWD}/site.repository/ site
       - name: Publish
         run: |
           git config --global user.name 'github-actions[bot]'
