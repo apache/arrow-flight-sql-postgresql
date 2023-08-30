@@ -67,7 +67,7 @@ class FlightSQLTest < Test::Unit::TestCase
   data("string - varchar", ["varchar(10)", :string, "b"])
   data("binary", ["bytea", :binary, "\x0".b])
   data("timestamp", ["timestamp", [:timestamp, :micro], timestamp_value])
-  def test_select_type
+  def test_select_direct
     pg_type, data_type, value = data
     data_type = Arrow::DataType.resolve(data_type)
     values = data_type.build_array([value])
@@ -79,6 +79,35 @@ class FlightSQLTest < Test::Unit::TestCase
     reader = flight_sql_client.do_get(endpoint.ticket, @options)
     assert_equal(Arrow::Table.new(value: values),
                  reader.read_all)
+  end
+
+  data("int16",  [:int16, -2])
+  data("int32",  [:int32, -2])
+  data("int64",  [:int64, -2])
+  data("float",  [:float, -2.2])
+  data("double", [:double, -2.2])
+  data("string", [:string, "b"])
+  data("binary", [:binary, "\x0".b])
+  data("timestamp", [[:timestamp, :micro], timestamp_value])
+  def test_select_prepare
+    unless flight_sql_client.respond_to?(:prepare)
+      omit("red-arrow-flight-sql 14.0.0 or later is required")
+    end
+
+    data_type, value = data
+    data_type = Arrow::DataType.resolve(data_type)
+    values = data_type.build_array([value])
+    flight_sql_client.prepare("SELECT $1 AS value",
+                              @options) do |statement|
+      statement.record_batch = Arrow::RecordBatch.new(value: values)
+      info = statement.execute(@options)
+      assert_equal(Arrow::Schema.new(value: values.value_data_type),
+                   info.get_schema)
+      endpoint = info.endpoints.first
+      reader = flight_sql_client.do_get(endpoint.ticket, @options)
+      assert_equal(Arrow::Table.new(value: values),
+                   reader.read_all)
+    end
   end
 
   def test_select_from
@@ -144,7 +173,7 @@ SELECT * FROM data
        ["timestamp", [:timestamp, :micro], timestamp_values])
   data("timestamp(nano)",
        ["timestamp", [:timestamp, :nano], timestamp_values])
-  def test_insert_type
+  def test_insert_prepare
     unless flight_sql_client.respond_to?(:prepare)
       omit("red-arrow-flight-sql 14.0.0 or later is required")
     end
