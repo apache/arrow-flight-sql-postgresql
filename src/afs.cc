@@ -46,6 +46,10 @@ extern "C"
 
 #undef Abs
 
+#if PG_VERSION_NUM >= 150000
+#	define PGRN_HAVE_SHMEM_REQUEST_HOOK
+#endif
+
 #include <arrow/buffer.h>
 #include <arrow/builder.h>
 #include <arrow/flight/server_middleware.h>
@@ -134,14 +138,17 @@ afs_sigusr1(SIGNAL_ARGS)
 	errno = errnoSaved;
 }
 
+#ifdef PGRN_HAVE_SHMEM_REQUEST_HOOK
 static shmem_request_hook_type PreviousShmemRequestHook = nullptr;
+#endif
 static const char* LWLockTrancheName = "arrow-flight-sql: lwlock tranche";
 void
 afs_shmem_request_hook(void)
 {
+#ifdef PGRN_HAVE_SHMEM_REQUEST_HOOK
 	if (PreviousShmemRequestHook)
 		PreviousShmemRequestHook();
-
+#endif
 	RequestNamedLWLockTranche(LWLockTrancheName, 1);
 }
 
@@ -2378,7 +2385,7 @@ class Proxy : public WorkerProcessor {
 				break;
 			}
 		}
-		return std::move(reader->schema());
+		return reader->schema();
 	}
 
 	std::random_device randomSeed_;
@@ -2452,7 +2459,7 @@ class MainProcessor : public Processor {
 
 	BackgroundWorkerHandle* start_server()
 	{
-		BackgroundWorker worker = {0};
+		BackgroundWorker worker = {};
 		snprintf(worker.bgw_name, BGW_MAXLEN, "%s: server", Tag);
 		snprintf(worker.bgw_type, BGW_MAXLEN, "%s: server", Tag);
 		worker.bgw_flags = BGWORKER_SHMEM_ACCESS;
@@ -2485,7 +2492,7 @@ class MainProcessor : public Processor {
 				continue;
 			}
 
-			BackgroundWorker worker = {0};
+			BackgroundWorker worker = {};
 			snprintf(
 				worker.bgw_name, BGW_MAXLEN, "%s: executor: %" PRIu64, Tag, session->id);
 			snprintf(
@@ -2663,7 +2670,7 @@ class FlightSQLServer : public arrow::flight::sql::FlightSqlServerBase {
 		ARROW_ASSIGN_OR_RAISE(auto ticket,
 		                      arrow::flight::sql::CreateStatementQueryTicket(query));
 		std::vector<arrow::flight::FlightEndpoint> endpoints{
-			arrow::flight::FlightEndpoint{std::move(ticket), {}}};
+			arrow::flight::FlightEndpoint{arrow::flight::Ticket{std::move(ticket)}, {}}};
 		ARROW_ASSIGN_OR_RAISE(
 			auto result,
 			arrow::flight::FlightInfo::Make(*schema, descriptor, endpoints, -1, -1));
@@ -2691,7 +2698,7 @@ class FlightSQLServer : public arrow::flight::sql::FlightSqlServerBase {
 	arrow::Result<arrow::flight::sql::ActionCreatePreparedStatementResult>
 	CreatePreparedStatement(
 		const arrow::flight::ServerCallContext& context,
-		const arrow::flight::sql::ActionCreatePreparedStatementRequest& request)
+		const arrow::flight::sql::ActionCreatePreparedStatementRequest& request) override
 	{
 		ARROW_ASSIGN_OR_RAISE(auto sessionID, session_id(context));
 		const auto& query = request.query;
@@ -2700,7 +2707,7 @@ class FlightSQLServer : public arrow::flight::sql::FlightSqlServerBase {
 
 	arrow::Status ClosePreparedStatement(
 		const arrow::flight::ServerCallContext& context,
-		const arrow::flight::sql::ActionClosePreparedStatementRequest& request)
+		const arrow::flight::sql::ActionClosePreparedStatementRequest& request) override
 	{
 		ARROW_ASSIGN_OR_RAISE(auto sessionID, session_id(context));
 		const auto& handle = request.prepared_statement_handle;
@@ -2720,7 +2727,7 @@ class FlightSQLServer : public arrow::flight::sql::FlightSqlServerBase {
 		ARROW_ASSIGN_OR_RAISE(auto ticket,
 		                      arrow::flight::sql::CreateStatementQueryTicket(handle));
 		std::vector<arrow::flight::FlightEndpoint> endpoints{
-			arrow::flight::FlightEndpoint{std::move(ticket), {}}};
+			arrow::flight::FlightEndpoint{arrow::flight::Ticket{std::move(ticket)}, {}}};
 		ARROW_ASSIGN_OR_RAISE(
 			auto result,
 			arrow::flight::FlightInfo::Make(*schema, descriptor, endpoints, -1, -1));
@@ -2995,10 +3002,14 @@ _PG_init(void)
 	                        NULL,
 	                        NULL);
 
+#ifdef PGRN_HAVE_SHMEM_REQUEST_HOOK
 	PreviousShmemRequestHook = shmem_request_hook;
 	shmem_request_hook = afs_shmem_request_hook;
+#else
+	afs_shmem_request_hook();
+#endif
 
-	BackgroundWorker worker = {0};
+	BackgroundWorker worker = {};
 	snprintf(worker.bgw_name, BGW_MAXLEN, "%s: main", Tag);
 	snprintf(worker.bgw_type, BGW_MAXLEN, "%s: main", Tag);
 	worker.bgw_flags = BGWORKER_SHMEM_ACCESS;
