@@ -37,7 +37,7 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Make RC GA
         run: |
           rc_tag=$(gh release list | \
@@ -65,7 +65,7 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ruby
@@ -113,7 +113,7 @@ jobs:
           - "debian-bookworm-amd64-postgresql-15-pgdg"
           - "ubuntu-jammy-amd64-postgresql-15-pgdg"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: apache/arrow
           path: arrow
