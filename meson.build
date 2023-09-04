@@ -36,7 +36,7 @@ if postgresql_dir != ''
   pg_config_names += [postgresql_dir / 'bin' / 'pg_config']
 endif
 pg_config_names += ['pg_config']
-pg_config = find_program(pg_config_names)
+pg_config = find_program(pg_config_names, version: '>= 15')
 
 arrow_flight_sql = dependency(
   'ArrowFlightSql',
@@ -59,9 +59,14 @@ postgresql = declare_dependency(
   compile_args: run_command(pg_config,
                             '--cflags_sl',
                             check: true).stdout().strip(),
-  include_directories: run_command(pg_config,
-                                   '--includedir-server',
-                                   check: true).stdout().strip(),
+  include_directories: [
+    include_directories(
+      run_command(pg_config,
+                  '--includedir-server',
+                  check: true).stdout().strip(),
+      is_system: true
+    ),
+  ]
 )
 install_dir = run_command(pg_config, '--pkglibdir', check: true).stdout().strip()
 afs = shared_module(
@@ -69,6 +74,7 @@ afs = shared_module(
   'src/afs.cc',
   dependencies: [arrow_flight_sql, postgresql],
   name_prefix: '',
+  name_suffix: 'so',
   install: true,
   install_dir: install_dir,
 )

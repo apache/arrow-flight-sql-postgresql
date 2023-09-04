@@ -128,7 +128,6 @@ module Helper
                flight_sql_port: 35432)
       @dir = File.join(@base_dir, db_path)
       @log_path = File.join(@dir, "log", @log_base_name)
-      socket_dir = File.join(@dir, "socket")
       @port = port
       @pgpass = Tempfile.new("arrow-flight-sql-test-pgpass")
       @pgpass.puts("#{@address}:#{@port}:*:#{@user}:#{@password}")
@@ -150,14 +149,11 @@ module Helper
                     "-D", @dir)
       end
       prepare_tls if use_tls?
-      FileUtils.mkdir_p(socket_dir)
       postgresql_conf = File.join(@dir, "postgresql.conf")
       File.open(postgresql_conf, "a") do |conf|
         conf.puts("listen_addresses = '#{@address}'")
         conf.puts("port = #{@port}")
-        unless windows?
-          conf.puts("unix_socket_directories = '#{socket_dir}'")
-        end
+        conf.puts("unix_socket_directories = ''")
         if use_tls?
           conf.puts("ssl = on")
           conf.puts("ssl_ca_file = 'root.crt'")
@@ -296,16 +292,12 @@ module Helper
       def included(base)
         base.module_eval do
           setup :setup_tmp_dir
-          teardown :teardown_tmp_dir
 
           setup :setup_db
-          teardown :teardown_db
 
           setup :setup_postgres
-          teardown :teardown_postgres
 
           setup :setup_test_db
-          teardown :teardown_test_db
         end
       end
     end
@@ -329,21 +321,21 @@ module Helper
     def setup_tmp_dir
       memory_fs = "/dev/shm"
       if File.exist?(memory_fs)
-        @tmp_dir = File.join(memory_fs, "arrow-flight-sql")
+        tmp_dir = memory_fs
       else
-        @tmp_dir = File.join(__dir__, "tmp")
+        tmp_dir = nil
       end
-      FileUtils.rm_rf(@tmp_dir)
-      FileUtils.mkdir_p(@tmp_dir)
-    end
-
-    def teardown_tmp_dir
-      debug_dir = ENV["AFS_TEST_DEBUG_DIR"]
-      if debug_dir and File.exist?(@tmp_dir)
-        FileUtils.rm_rf(debug_dir)
-        FileUtils.mv(@tmp_dir, debug_dir)
-      else
-        FileUtils.rm_rf(@tmp_dir)
+      Dir.mktmpdir("arrow-flight-sql-", tmp_dir) do |dir|
+        @tmp_dir = dir
+        begin
+          yield
+        ensure
+          debug_dir = ENV["AFS_TEST_DEBUG_DIR"]
+          if debug_dir and File.exist?(@tmp_dir)
+            FileUtils.rm_rf(debug_dir)
+            FileUtils.mv(@tmp_dir, debug_dir)
+          end
+        end
       end
     end
 
@@ -353,13 +345,11 @@ module Helper
         shared_preload_libraries: shared_preload_libraries,
       }
       @postgresql.initdb(**options)
+      yield
     end
 
     def shared_preload_libraries
       ["arrow_flight_sql"]
-    end
-
-    def teardown_db
     end
 
     def start_postgres
@@ -372,10 +362,11 @@ module Helper
 
     def setup_postgres
       start_postgres
-    end
-
-    def teardown_postgres
-      stop_postgres if @postgresql
+      begin
+        yield
+      ensure
+        stop_postgres if @postgresql
+      end
     end
 
     def create_db(postgresql, db_name)
@@ -390,9 +381,7 @@ module Helper
                         "WHERE datname = current_database()")
       oid = result.lines[3].strip
       @test_db_dir = File.join(@postgresql.dir, "base", oid)
-    end
-
-    def teardown_test_db
+      yield
     end
   end
 end
