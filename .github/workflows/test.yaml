@@ -29,52 +29,81 @@ permissions:
   contents: read
 
 jobs:
-  ubuntu:
-    name: Ubuntu - PostgreSQL ${{ matrix.postgresql-version }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+  test:
+    name: ${{ matrix.os }} - PostgreSQL ${{ matrix.postgresql-version }}
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
+        os:
+          - macos
+          - ubuntu
         postgresql-version:
           - "15"
     steps:
       - uses: actions/checkout@v4
-      - name: Install Apache Arrow
+      - name: Install dependencies on Ubuntu
+        if: matrix.os == 'ubuntu'
         run: |
-          sudo apt update
-          sudo apt install -y -V ca-certificates lsb-release wget
-          apt_source_deb=apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
-          wget https://apache.jfrog.io/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/${apt_source_deb}
-          sudo apt install -y -V ./${apt_source_deb}
           sudo apt update
           sudo apt install -y -V \
-            libarrow-flight-sql-glib-dev \
-            meson \
-            ninja-build
-      - name: Install PostgreSQL
-        run: |
-          sudo apt -y -V purge '^postgresql'
-          suite=$(lsb_release --codename --short)-pgdg
-          sudo tee /etc/apt/sources.list.d/pgdg.list <<APT_SOURCE
-          deb http://apt.postgresql.org/pub/repos/apt ${suite} main
-          APT_SOURCE
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+            ca-certificates \
+            gpg \
+            lsb-release \
+            wget
+          os=$(lsb_release --id --short | tr 'A-Z' 'a-z')
+          code_name=$(lsb_release --codename --short)
+
+          apt_source_deb=apache-arrow-apt-source-latest-${code_name}.deb
+          wget https://apache.jfrog.io/artifactory/arrow/${os}/${apt_source_deb}
+          sudo apt install -y -V ./${apt_source_deb}
+
+          wget -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
+            sudo gpg --no-default-keyring --keyring /usr/share/keyrings/pgdg.gpg --import -
+          (echo "Types: deb"; \
+           echo "URIs: http://apt.postgresql.org/pub/repos/apt"; \
+           echo "Suites: ${code_name}-pgdg"; \
+           echo "Components: main"; \
+           echo "Signed-By: /usr/share/keyrings/pgdg.gpg") | \
+            sudo tee /etc/apt/sources.list.d/pgdg.sources
+
           sudo apt update
-          sudo apt -y -V -t ${suite} install \
+          sudo apt -y -V purge '^postgresql'
+          sudo apt install -y -V \
+            libarrow-flight-sql-glib-dev \
             libkrb5-dev \
+            meson \
+            ninja-build \
             postgresql-${{ matrix.postgresql-version }} \
             postgresql-server-dev-${{ matrix.postgresql-version }}
+      - name: Install dependencies on macOS
+        if: matrix.os == 'macos'
+        run: |
+          sed \
+            -i '' \
+            -e 's/postgresql@[0-9]*/postgresql@${{ matrix.postgresql-version }}/g' \
+            Brewfile
+          brew update
+          brew bundle
+          echo "$(brew --prefix postgresql@${{ matrix.postgresql-version }})/bin" >> $GITHUB_PATH
       - name: Install Apache Arrow Flight SQL adapter
         run: |
-          meson \
-            setup \
-            --prefix=/tmp/local \
-            -Dbenchmark=true \
-            -Dpostgresql_dir=$(pg_config --binddir)/.. \
-            build
-          ninja -C build
-          sudo ninja -C build install
+          setup_args=(
+            "--prefix=/tmp/local"
+            "-Dbenchmark=true"
+            "-Dpostgresql_dir=$(pg_config --bindir)/.."
+          )
+          if [ ${{ matrix.os }} = "macos" ]; then
+            setup_args+=("--pkg-config-path=$(brew --prefix libpq)/lib/pkgconfig")
+          fi
+          meson setup "${setup_args[@]}" build
+          meson compile -C build
+          if [ ${{ matrix.os }} = "ubuntu" ]; then
+            sudo meson install -C build
+          else
+            meson install -C build
+          fi
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ruby
