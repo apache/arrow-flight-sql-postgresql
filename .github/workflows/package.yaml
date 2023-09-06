@@ -20,6 +20,10 @@ name: Package
 on:
   pull_request:
   push:
+    branches:
+      - "*"
+    tags:
+      - "*-rc*"
 
 concurrency:
   group: ${{ github.head_ref || github.sha }}-${{ github.workflow }}
@@ -30,38 +34,8 @@ permissions:
   packages: write
 
 jobs:
-  release:
-    if: >-
-      github.ref_type == 'tag' && !contains(github.ref_name, 'rc')
-    name: Release
-    timeout-minutes: 5
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Make RC GA
-        run: |
-          rc_tag=$(gh release list | \
-                     cut -d'	' -f3 | \
-                     grep -F "${GITHUB_REF_NAME}-rc" | \
-                     head -n1)
-          title="$(gh release view ${rc_tag} --json name --jq .name | \
-                     sed -E -e 's/ RC[0-9]+$//')"
-          gh release view ${rc_tag} --json body --jq .body > release-note.md
-          mkdir rc_artifacts
-          gh release download ${rc_tag} --dir rc_artifacts
-          gh release create ${GITHUB_REF_NAME} \
-            --notes-file release-note.md \
-            --title "${title}" \
-            --verify-tag \
-            rc_artifacts/*
-        env:
-          GH_TOKEN: ${{ github.token }}
-
   source:
     name: Source
-    if: >-
-      github.ref_type == 'branch' ||
-        (github.ref_type == 'tag' && contains(github.ref_name, 'rc'))
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
@@ -82,7 +56,7 @@ jobs:
         run: |
           ruby \
             -e 'print("## Apache Arrow Flight SQL adapter for PostgreSQL "); \
-                puts(ARGF.read.split(/^## /)[1]. \
+                puts(ARGF.read.split(/^## Version /)[1]. \
                        gsub(/ {.+?}/, ""). \
                        gsub(/\[(.+?)\]\[.+?\]/) {$1})' \
             doc/source/release-notes.md > release-note.md
@@ -99,9 +73,6 @@ jobs:
 
   linux:
     name: Linux
-    if: >-
-      github.ref_type == 'branch' ||
-        (github.ref_type == 'tag' && contains(github.ref_name, 'rc'))
     needs:
       - source
     runs-on: ubuntu-latest
@@ -212,5 +183,111 @@ jobs:
             --volume ${PWD}:/host \
             ${ARCHITECTURE}/${DISTRIBUTION}:${DISTRIBUTION_VERSION} \
             /host/package/${TASK_NAMESPACE}/test.sh \
+            ${VERSION} \
+            local \
             package/${PACKAGE}/${TASK_NAMESPACE}/repositories
           popd
+
+  verify-source:
+    name: Verify source on ${{ matrix.os }}
+    needs:
+      - source
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos
+          - ubuntu
+        postgresql-version:
+          - "15"
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/apache-arrow-flight-sql-postgresql/Gemfile
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: source
+      - name: Extract source archive
+        run: |
+          tar_gz=$(echo apache-arrow-flight-sql-postgresql-*.tar.gz)
+          tar xf ${tar_gz}
+          ln -s ${tar_gz%.tar.gz} apache-arrow-flight-sql-postgresql
+      - name: Install dependencies on Ubuntu
+        if: matrix.os == 'ubuntu'
+        run: |
+          sudo apt update
+          sudo apt install -y -V \
+            ca-certificates \
+            gpg \
+            lsb-release \
+            wget
+          os=$(lsb_release --id --short | tr 'A-Z' 'a-z')
+          code_name=$(lsb_release --codename --short)
+
+          apt_source_deb=apache-arrow-apt-source-latest-${code_name}.deb
+          wget https://apache.jfrog.io/artifactory/arrow/${os}/${apt_source_deb}
+          sudo apt install -y -V ./${apt_source_deb}
+
+          wget -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
+            sudo gpg --no-default-keyring --keyring /usr/share/keyrings/pgdg.gpg --import -
+          (echo "Types: deb"; \
+           echo "URIs: http://apt.postgresql.org/pub/repos/apt"; \
+           echo "Suites: ${code_name}-pgdg"; \
+           echo "Components: main"; \
+           echo "Signed-By: /usr/share/keyrings/pgdg.gpg") | \
+            sudo tee /etc/apt/sources.list.d/pgdg.sources
+
+          sudo apt update
+          sudo apt -y -V purge '^postgresql'
+          sudo apt install -y -V \
+            libarrow-flight-sql-glib-dev \
+            libkrb5-dev \
+            meson \
+            ninja-build \
+            postgresql-${{ matrix.postgresql-version }} \
+            postgresql-server-dev-${{ matrix.postgresql-version }}
+      - name: Install dependencies on macOS
+        if: matrix.os == 'macos'
+        run: |
+          pushd apache-arrow-flight-sql-postgresql
+          sed \
+            -i '' \
+            -e 's/postgresql@[0-9]*/postgresql@${{ matrix.postgresql-version }}/g' \
+            Brewfile
+          brew update
+          brew bundle
+          echo "$(brew --prefix postgresql@${{ matrix.postgresql-version }})/bin" >> $GITHUB_PATH
+          popd
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ruby
+          bundler-cache: true
+          cache-version: 1
+      - name: Run
+        run: |
+          pushd apache-arrow-flight-sql-postgresql
+          bundle exec dev/release/verify-rc.sh
+          popd
+        env:
+          TEST_DEFAULT: "0"
+          TEST_SOURCE: "1"
+
+  verify-binaries:
+    name: Verify binaries
+    if: >-
+      github.ref_type == 'tag'
+    needs:
+      - linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run
+        run: |
+          version=${GITHUB_REF_NAME%-rc*}
+          rc=${GITHUB_REF_NAME#*-rc}
+          dev/release/verify-rc.sh ${version} ${rc}
+        env:
+          TEST_BINARIES: "1"
+          TEST_DEFAULT: "0"
