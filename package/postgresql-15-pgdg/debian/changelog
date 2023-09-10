@@ -1,0 +1,5 @@
+postgresql-15-pgdg-apache-arrow-flight-sql (0.1.0-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Sutou Kouhei <kou@clear-code.com>  Sun, 10 Sep 2023 04:57:55 -0000
