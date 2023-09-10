@@ -277,10 +277,15 @@ def ensure_package_job_finished(rc_tag)
      run_id.to_s)
 end
 
+task :env do
+  load_env
+end
+
 namespace :release do
   namespace :rc do
     desc "Prepare new release"
-    task :prepare do
+    task :prepare => :env do
+      load_env
       prepare_branch = "prepare-#{version}"
       sh("git", "switch", "-c", prepare_branch)
       package_directories.each do |dir|
@@ -304,7 +309,7 @@ namespace :release do
     end
 
     desc "Ensure remote for releasing"
-    task :ensure_release_remote do
+    task :ensure_release_remote => :env do
       begin
         git_remote_url(release_remote)
       rescue RuntimeError => error
@@ -316,7 +321,7 @@ namespace :release do
     end
 
     desc "Validation before a new RC"
-    task :validate do
+    task :validate => :env do
       validate_rc(version)
     end
 
@@ -336,8 +341,7 @@ namespace :release do
     end
 
     desc "Sign the latest RC"
-    task :sign do
-      load_env
+    task :sign => :env do
       rc = detect_latest_rc(version)
       if rc.nil?
         raise "'rake release:rc:tag && git push ...' is needed"
@@ -373,8 +377,7 @@ namespace :release do
     end
 
     desc "Upload Linux packages"
-    task :linux do
-      load_env
+    task :linux => :env do
       rc = detect_latest_rc(version)
       if rc.nil?
         raise "'rake release:rc:tag && git push ...' is needed"
@@ -407,8 +410,7 @@ namespace :release do
     end
 
     desc "Generate a release vote e-mail"
-    task :vote do
-      load_env
+    task :vote => :env do
       rc = detect_latest_rc(version)
       if rc.nil?
         raise "'rake release:rc:tag && git push ...' is needed"
@@ -451,8 +453,7 @@ Flight SQL adapter for PostgreSQL doesn't reach 1.0.0 yet.
 
     namespace :publish do
       desc "Publish to https://dist.apache.org/"
-      task :apache do
-        load_env
+      task :apache => :env do
         rc = detect_latest_rc(version)
         rc_tag = "#{version}-rc#{rc}"
         Dir.mktmpdir do |tmp|
@@ -478,7 +479,7 @@ Flight SQL adapter for PostgreSQL doesn't reach 1.0.0 yet.
       end
 
       desc "Publish Linux packages"
-      task :linux do
+      task :linux => :env do
         rc = detect_latest_rc(version)
         env = {
           "UPLOAD_DEFAULT" => "0",
@@ -492,8 +493,7 @@ Flight SQL adapter for PostgreSQL doesn't reach 1.0.0 yet.
       end
 
       desc "Tag #{version}"
-      task :tag do
-        load_env
+      task :tag => :env do
         rc = detect_latest_rc(version)
         rc_tag = "#{version}-rc#{rc}"
         sh("git", "tag",
@@ -520,7 +520,7 @@ Flight SQL adapter for PostgreSQL doesn't reach 1.0.0 yet.
 
   namespace :announce do
     desc "Show blog announce template"
-    task :blog do
+    task :blog => :env do
       previous_version = env_value("PREVIOUS_VERSION")
       commit_range = "#{previous_version}..#{version}"
       n_commits = sh_capture_output("git", "rev-list", "--count", commit_range).chomp
@@ -601,7 +601,7 @@ be filed on [GitHub][issues], and questions can be directed to GitHub or
     end
 
     desc "Show mail announce template"
-    task :mail do
+    task :mail => :env do
       blog_path_date = Date.today("%Y/%m/%d")
       # Extract the first "## ..." section.
       overview = File.read("doc/source/overview.md").split(/^## /)[1]
@@ -642,7 +642,7 @@ The Apache Arrow community
     end
 
     desc "Show PostgreSQL announce template"
-    task :postgresql do
+    task :postgresql => :env do
       puts(<<-ANNOUNCE)
 TODO
       ANNOUNCE
@@ -651,7 +651,7 @@ TODO
 
   namespace :version do
     desc "Bump version"
-    task :bump do
+    task :bump => :env do
       new_version = env_value("NEW_VERSION")
       bump_version_branch = "bump-version-#{new_version}"
       sh("git", "switch", "-c", bump_version_branch)
