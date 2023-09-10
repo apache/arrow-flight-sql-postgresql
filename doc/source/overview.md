@@ -19,6 +19,8 @@
 
 # Overview
 
+## What is this?
+
 Apache Arrow Flight SQL adapter for PostgreSQL is a PostgreSQL
 extension that adds an [Apache Arrow Flight
 SQL][apache-arrow-flight-sql] endpoint to PostgreSQL.
@@ -33,6 +35,8 @@ Apache Arrow format is designed for fast typed table data exchange. If
 you want to get large data by `SELECT` or `INSERT`/`UPDATE` large
 data, Apache Arrow Flight SQL will be faster than the PostgreSQL wire
 protocol.
+
+## Benchmark
 
 See also [a simple benchmark result][benchmark-integer] that just
 executes `SELECT * FROM integer_only_table`. It shows that Apache

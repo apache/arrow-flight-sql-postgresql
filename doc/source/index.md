@@ -32,6 +32,12 @@ configuration.md
 client.md
 ```
 
+```{toctree}
+:maxdepth: 1
+:caption: For developers
+development/release.md
+```
+
 ## Indices and tables
 
 - {ref}`genindex`
