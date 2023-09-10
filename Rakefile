@@ -230,7 +230,7 @@ def validate_rc(version)
     end
   end
 
-  release_notes = File.read("doc/source/release-notes.md").split(/^## /)
+  release_notes = File.read("doc/source/release-notes.md").split(/^## Version /)
   latest_release_note = release_notes[1]
   latest_release_note_version = latest_release_note.lines[0].strip
   unless latest_release_note_version == version
