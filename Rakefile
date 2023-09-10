@@ -186,7 +186,7 @@ def git_remote_url(name)
 end
 
 def git_current_branch
-  sh_capture_output("git", "rev-parse", "--abbrev-ref=HEAD").chomp
+  sh_capture_output("git", "rev-parse", "--abbrev-ref", "HEAD").chomp
 end
 
 def git_last_commit(branch="HEAD")
@@ -203,7 +203,7 @@ def repository_url_extract_repository(url)
     # apache/arrow-flight-sql-postgresql.git
     repository = url.split(":").last
   end
-  respoitory.delete_suffix(".git")
+  repository.delete_suffix(".git")
 end
 
 def repository_last_commit(repository)
@@ -252,7 +252,7 @@ def validate_rc(version)
 
   conclusions = ci_conclusions(release_repository, "main", remote_commit)
   unless conclusions.all? {|conclusion| conclusion == "success"}
-    raise "CI failed: https://github.com/#{release_repository}/commit/#{remote_commit}"
+    raise "CI wasn't succeeded: https://github.com/#{release_repository}/commit/#{remote_commit}"
   end
 end
 
