@@ -396,6 +396,10 @@ waits for finishing GitHub Actions jobs automatically.</p>
 <p>You need to specify your cloned <code class="docutils literal notranslate"><span class="pre">apache/arrow</span></code> repository. You must
 prepare its <code class="docutils literal notranslate"><span class="pre">dev/release/.env</span></code> (not only
 <code class="docutils literal notranslate"><span class="pre">apache/arrow-flight-sql-postgresql</span></code>’s <code class="docutils literal notranslate"><span class="pre">dev/release/.env</span></code>.)</p>
+<p>Re-run RC verify CI jobs on GitHub Actions:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rake<span class="w"> </span>release:rc:verify
+</pre></div>
+</div>
 <p>Start a vote thread for the new RC on <code class="docutils literal notranslate"><span class="pre">dev&#64;arrow.apache.org</span></code>. You can
 generate a vote e-mail template:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rake<span class="w"> </span>release:vote
