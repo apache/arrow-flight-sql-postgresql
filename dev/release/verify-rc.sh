@@ -242,7 +242,7 @@ test_source_distribution() {
 }
 
 test_apt() {
-  pushd "${TARGET_SOURCE_DIR}"
+  pushd "${ARROW_TMPDIR}"
 
   show_header "Testing APT packages"
 
@@ -268,16 +268,16 @@ test_apt() {
     done
   else
     curl --get \
-         --data branch=${VERSION}-${RC_NUMBER} \
-         https://api.github.com/repos/${SOURCE_REPOSITORY}/actions/workflows/package.yaml/runs > \
-         package_run.json
-    if [ $(jq -r '.total_count' package_run.json) -eq 0 ]; then
+         --data branch=${VERSION}-rc${RC_NUMBER} \
+         https://api.github.com/repos/${SOURCE_REPOSITORY}/actions/workflows/verify-rc.yaml/runs > \
+         verify_rc_run.json
+    if [ $(jq -r '.total_count' verify_rc_run.json) -eq 0 ]; then
       echo "APT packages test on GitHub Actions isn't ran yet."
       return 1
     fi
     echo "APT packages test was ran on GitHub Actions:"
-    echo "  $(jq -r '.workflow_runs[0].html_url' package_run.json)"
-    conclusion="$(jq -r '.workflow_runs[0].conclusion' package_run.json)"
+    echo "  $(jq -r '.workflow_runs[0].html_url' verify_rc_run.json)"
+    conclusion="$(jq -r '.workflow_runs[0].conclusion' verify_rc_run.json)"
     if [ "${conclusion}" != "success" ]; then
       echo "It was not succeeded: ${conclusion}"
       return 1
@@ -301,7 +301,7 @@ test_binary_distribution() {
 : ${TEST_BINARIES:=${TEST_DEFAULT}}
 
 if [ "${GITHUB_ACTIONS:-}" = "true" ] || \
-     ruby -r arrow-flight-sql -e 'true' > dev/null 2>&1; then
+     ruby -r arrow-flight-sql -e 'true' > /dev/null 2>&1; then
   : ${TEST_SOURCE_MANUAL:=0}
 else
   : ${TEST_SOURCE_MANUAL:=1}
@@ -310,11 +310,11 @@ fi
 TEST_SUCCESS=no
 
 setup_tempdir
-ensure_source_directory
 if [ ${TEST_SOURCE} -gt 0 ]; then
+  ensure_source_directory
   test_source_distribution
 fi
-if [ ${TEST_BINARY} -gt 0 ]; then
+if [ ${TEST_BINARIES} -gt 0 ]; then
   test_binary_distribution
 fi
 
