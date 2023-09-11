@@ -205,6 +205,7 @@ test_source_distribution() {
   meson setup \
         --prefix="${PWD}/install" \
         -Dpostgresql_dir="$(pg_config --bindir)/.." \
+        ${ARROW_FLIGHT_SQL_POSTGRESQL_MESON_SETUP_ARGS:-} \
         build
   meson compile -C build
   if [ ${TEST_SOURCE_MANUAL} -gt 0 ]; then
