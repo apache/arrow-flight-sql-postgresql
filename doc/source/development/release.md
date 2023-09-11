@@ -94,6 +94,12 @@ You need to specify your cloned `apache/arrow` repository. You must
 prepare its `dev/release/.env` (not only
 `apache/arrow-flight-sql-postgresql`'s `dev/release/.env`.)
 
+Re-run RC verify CI jobs on GitHub Actions:
+
+```bash
+rake release:rc:verify
+```
+
 Start a vote thread for the new RC on `dev@arrow.apache.org`. You can
 generate a vote e-mail template:
 
