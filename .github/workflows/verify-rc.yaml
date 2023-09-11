@@ -15,22 +15,21 @@
 # specific language governing permissions and limitations
 # under the License.
 
-name: Test
+name: Verify RC
 
 on:
-  pull_request:
   push:
-
-concurrency:
-  group: ${{ github.head_ref || github.sha }}-${{ github.workflow }}
-  cancel-in-progress: true
+    branches:
+      - "!**"
+    tags:
+      - "*-rc*"
 
 permissions:
   contents: read
 
 jobs:
-  test:
-    name: ${{ matrix.os }} - PostgreSQL ${{ matrix.postgresql-version }}
+  source:
+    name: Source on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 15
     strategy:
@@ -41,28 +40,13 @@ jobs:
           - ubuntu
         postgresql-version:
           - "15"
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/apache-arrow-flight-sql-postgresql/Gemfile
     steps:
       - uses: actions/checkout@v4
       - name: Prepare
         run: |
           ci/scripts/prepare-${{ matrix.os }}.sh ${{ matrix.postgresql-version }}
-      - name: Install Apache Arrow Flight SQL adapter
-        run: |
-          setup_args=(
-            "--prefix=/tmp/local"
-            "-Dbenchmark=true"
-            "-Dpostgresql_dir=$(pg_config --bindir)/.."
-          )
-          if [ ${{ matrix.os }} = "macos" ]; then
-            setup_args+=("--pkg-config-path=$(brew --prefix libpq)/lib/pkgconfig")
-          fi
-          meson setup "${setup_args[@]}" build
-          meson compile -C build
-          if [ ${{ matrix.os }} = "ubuntu" ]; then
-            sudo meson install -C build
-          else
-            meson install -C build
-          fi
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ruby
@@ -70,11 +54,26 @@ jobs:
           cache-version: 1
       - name: Run
         run: |
-          ARROW_FLIGHT_SQL_POSTGRESQL_MESON_SETUP_ARGS="-Dbenchmark=true"
-          if [ ${{ matrix.os }} = "macos" ]; then
-            ARROW_FLIGHT_SQL_POSTGRESQL_MESON_SETUP_ARGS+=" --pkg-config-path=$(brew --prefix libpq)/lib/pkgconfig"
-          fi
-          bundle exec dev/release/verify-rc.sh
+          version=${GITHUB_REF_NAME%-rc*}
+          rc=${GITHUB_REF_NAME#*-rc}
+          bundle exec dev/release/verify-rc.sh ${version} ${rc}
         env:
           TEST_DEFAULT: "0"
           TEST_SOURCE: "1"
+
+  binaries:
+    name: Binaries
+    needs:
+      - linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run
+        run: |
+          version=${GITHUB_REF_NAME%-rc*}
+          rc=${GITHUB_REF_NAME#*-rc}
+          dev/release/verify-rc.sh ${version} ${rc}
+        env:
+          TEST_BINARIES: "1"
+          TEST_DEFAULT: "0"
