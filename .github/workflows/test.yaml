@@ -46,23 +46,6 @@ jobs:
       - name: Prepare
         run: |
           ci/scripts/prepare-${{ matrix.os }}.sh ${{ matrix.postgresql-version }}
-      - name: Install Apache Arrow Flight SQL adapter
-        run: |
-          setup_args=(
-            "--prefix=/tmp/local"
-            "-Dbenchmark=true"
-            "-Dpostgresql_dir=$(pg_config --bindir)/.."
-          )
-          if [ ${{ matrix.os }} = "macos" ]; then
-            setup_args+=("--pkg-config-path=$(brew --prefix libpq)/lib/pkgconfig")
-          fi
-          meson setup "${setup_args[@]}" build
-          meson compile -C build
-          if [ ${{ matrix.os }} = "ubuntu" ]; then
-            sudo meson install -C build
-          else
-            meson install -C build
-          fi
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ruby
