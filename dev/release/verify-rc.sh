@@ -242,11 +242,10 @@ test_source_distribution() {
 }
 
 test_apt() {
-  pushd "${ARROW_TMPDIR}"
-
   show_header "Testing APT packages"
 
   if [ "${GITHUB_ACTIONS}" = "true" ]; then
+    pushd "${TOP_SOURCE_DIR}"
     local verify_type=rc
     if [ "${TEST_STAGING:-0}" -gt 0 ]; then
       verify_type=staging-${verify_type}
@@ -266,7 +265,9 @@ test_apt() {
         exit 1
       fi
     done
+    popd
   else
+    pushd "${ARROW_TMPDIR}"
     curl --get \
          --data branch=${VERSION}-rc${RC_NUMBER} \
          https://api.github.com/repos/${SOURCE_REPOSITORY}/actions/workflows/verify-rc.yaml/runs > \
@@ -282,9 +283,8 @@ test_apt() {
       echo "It was not succeeded: ${conclusion}"
       return 1
     fi
+    popd
   fi
-
-  popd
 }
 
 test_binary_distribution() {
