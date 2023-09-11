@@ -277,6 +277,18 @@ def ensure_package_job_finished(rc_tag)
      run_id.to_s)
 end
 
+def re_run_verify_rc_jobs(rc_tag)
+  run_id = sh_capture_output("gh", "run", "list",
+                             "--branch", rc_tag,
+                             "--jq", ".[0].databaseId",
+                             "--json", "databaseId",
+                             "--repo", github_repository,
+                             "--workflow", "verify-rc.yaml").chomp
+  sh("gh", "run", "rerun",
+     "--repo", github_repository,
+     run_id)
+end
+
 task :env do
   load_env
 end
@@ -407,6 +419,12 @@ namespace :release do
            version,
            rc.to_s)
       end
+    end
+
+    desc "Re-run verify RC CI jobs"
+    task :verify => :env do
+      rc = detect_latest_rc(version)
+      re_run_verify_rc_jobs("#{version}-rc#{rc}")
     end
 
     desc "Generate a release vote e-mail"
