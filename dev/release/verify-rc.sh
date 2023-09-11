@@ -93,7 +93,7 @@ download_rc_file() {
     --show-error \
     --fail \
     --location \
-    --remote-name "${releases_url}/tag/${VERSION}-rc${RC_NUMBER}/${file}"
+    --remote-name "${releases_url}/download/${VERSION}-rc${RC_NUMBER}/${file}"
 }
 
 import_gpg_keys() {
