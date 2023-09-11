@@ -40,8 +40,6 @@ jobs:
           - ubuntu
         postgresql-version:
           - "15"
-    env:
-      BUNDLE_GEMFILE: ${{ github.workspace }}/apache-arrow-flight-sql-postgresql/Gemfile
     steps:
       - uses: actions/checkout@v4
       - name: Prepare
