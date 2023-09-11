@@ -203,7 +203,7 @@ test_source_distribution() {
   fi
 
   meson setup \
-        --prefix="${PWD}/install" \
+        --prefix="${ARROW_TMPDIR}/install" \
         -Dpostgresql_dir="$(pg_config --bindir)/.." \
         ${ARROW_FLIGHT_SQL_POSTGRESQL_MESON_SETUP_ARGS:-} \
         build
@@ -227,6 +227,7 @@ test_source_distribution() {
       Linux-/usr/*)
         if type sudo > /dev/null 2>&1; then
           sudo meson install -C build
+          sudo chown -R "${USER}:" "${ARROW_TMPDIR}/install"
         else
           meson install -C build
         fi
