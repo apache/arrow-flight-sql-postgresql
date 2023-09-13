@@ -674,8 +674,8 @@ TODO
       bump_version_branch = "bump-version-#{new_version}"
       sh("git", "switch", "-c", bump_version_branch)
       meson_build = File.read("meson.build")
-      new_meson_build = meson_build.gsub(/version: '.+?'/) do
-        "version: '#{new_version}'"
+      new_meson_build = meson_build.gsub(/(^ *version: )'.+?'/) do
+        "#{$1}'#{new_version}'"
       end
       File.write("meson.build", new_meson_build)
       sh("git", "add", "meson.build")
