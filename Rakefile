@@ -500,9 +500,9 @@ Flight SQL adapter for PostgreSQL doesn't reach 1.0.0 yet.
       task :linux => :env do
         rc = detect_latest_rc(version)
         env = {
-          "UPLOAD_DEFAULT" => "0",
-          "UPLOAD_DEBIAN" => "1",
-          "UPLOAD_UBUNTU" => "1",
+          "DEPLOY_DEFAULT" => "0",
+          "DEPLOY_DEBIAN" => "1",
+          "DEPLOY_UBUNTU" => "1",
         }
         sh(env,
            "#{arrow_source}/dev/release/post-02-binary.sh",
