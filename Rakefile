@@ -437,7 +437,7 @@ namespace :release do
       commit = git_last_commit(rc_tag)
       puts(<<-MAIL)
 To: dev@arrow.apache.org
-Subject: [VOTE] Release Apache Arrow Flight SQL adapter for PostgreSQL ${version} - RC#{rc}
+Subject: [VOTE] Release Apache Arrow Flight SQL adapter for PostgreSQL #{version} - RC#{rc}
 
 Hi,
 
@@ -446,7 +446,7 @@ Apache Arrow Flight SQL adapter for PostgreSQL version #{version}.
 
 This release candidate is based on commit: #{commit} [1]
 
-The source release rc#{rc} and changelog is hosted at [2].
+The source release RC#{rc} and release note are hosted at [2].
 The binary artifacts are hosted at [3][4].
 
 Please download, verify checksums and signatures, build and run,
