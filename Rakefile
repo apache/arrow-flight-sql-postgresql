@@ -479,7 +479,7 @@ Flight SQL adapter for PostgreSQL doesn't reach 1.0.0 yet.
              "--depth=empty",
              "https://dist.apache.org/repos/dist/release/arrow",
              tmp)
-          release_dir = "#{tmp}/apache-arrow-flight-sql-postgresql-#{verison}"
+          release_dir = "#{tmp}/apache-arrow-flight-sql-postgresql-#{version}"
           mkdir_p(release_dir)
           sh("gh", "release", "download",
              "--dir", release_dir,
