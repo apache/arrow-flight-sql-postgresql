@@ -23,13 +23,16 @@
 
 Apache Arrow Flight SQL adapter for PostgreSQL is a PostgreSQL
 extension that adds an [Apache Arrow Flight
-SQL][apache-arrow-flight-sql] endpoint to PostgreSQL.
+SQL](https://arrow.apache.org/docs/format/FlightSql.html) endpoint to
+PostgreSQL.
 
 Apache Arrow Flight SQL is a protocol to use [Apache Arrow
-format][apache-arrow-format] to interact with SQL databases. You can
-use Apache Arrow Flight SQL instead of [the PostgreSQL wire
-protocol][postgresql-protocol] to interact with PostgreSQL by Apache
-Arrow Flight SQL adapter for PostgreSQL.
+format](https://arrow.apache.org/docs/format/Columnar.html) to
+interact with SQL databases. You can use Apache Arrow Flight SQL
+instead of [the PostgreSQL wire
+protocol](https://www.postgresql.org/docs/current/protocol.html) to
+interact with PostgreSQL by Apache Arrow Flight SQL adapter for
+PostgreSQL.
 
 Apache Arrow format is designed for fast typed table data exchange. If
 you want to get large data by `SELECT` or `INSERT`/`UPDATE` large
@@ -43,7 +46,4 @@ executes `SELECT * FROM integer_only_table`. It shows that Apache
 Arrow Flight SQL is faster than the PostgreSQL wire protocol when
 result data is large.
 
-[apache-arrow-flight-sql]: https://arrow.apache.org/docs/format/FlightSql.html
-[apache-arrow-format]: https://arrow.apache.org/docs/format/Columnar.html
-[postgresql-protocol]: https://www.postgresql.org/docs/current/protocol.html
 [benchmark-integer]: https://github.com/apache/arrow-flight-sql-postgresql/tree/main/benchmark/integer
