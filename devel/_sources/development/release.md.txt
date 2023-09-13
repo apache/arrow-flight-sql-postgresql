@@ -210,5 +210,5 @@ rake release:announce:postgresql
 Bump version:
 
 ```bash
-rake version:bump NEW_VERSION=X.Y.Z
+rake release:version:bump NEW_VERSION=X.Y.Z
 ```
