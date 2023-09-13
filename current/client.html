@@ -1,0 +1,899 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Client &#8212; Apache Arrow Flight SQL adapter for PostgreSQL current documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/tabs.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/tabs.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'client';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://arrow.apache.org/flight-sql-postgresql/devel/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'current';
+        </script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Release" href="development/release.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  <div class="navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/logo-light.png" class="logo__image only-light" alt="Apache Arrow Flight SQL adapter for PostgreSQL"/>
+    <script>document.write(`<img src="_static/logo-dark.png" class="logo__image only-dark" alt="Apache Arrow Flight SQL adapter for PostgreSQL"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/apache/arrow-flight-sql-postgresql" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
+      current  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
+</div>
+
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/apache/arrow-flight-sql-postgresql" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
+      current  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumbs">
+  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Client</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+<section class="tex2jax_ignore mathjax_ignore" id="client">
+<h1>Client<a class="headerlink" href="#client" title="Permalink to this heading">#</a></h1>
+<section id="how-to-connect">
+<h2>How to connect<a class="headerlink" href="#how-to-connect" title="Permalink to this heading">#</a></h2>
+<p>You must specify PostgreSQL user and PostgreSQL database to connect
+Apache Arrow Flight SQL endpoint.</p>
+<p>User name and password must be passed by <code class="docutils literal notranslate"><span class="pre">Handshake</span></code> call. Note that
+basic authentication is only supported for now. mTLS (mutual-TLS)
+isn’t implemented yet. If you’re interested in mTLS, please see the
+issue for it:
+<a class="github reference external" href="https://github.com/apache/arrow-flight-sql-postgresql/issues/79">apache/arrow-flight-sql-postgresql#79</a></p>
+<p>You need to use a header to specify PostgreSQL database. The header
+name for PostgreSQL database is <code class="docutils literal notranslate"><span class="pre">x-flight-sql-database</span></code>.</p>
+<div class="tab-set docutils">
+<input checked="True" class="tab-input" id="tab-set--0-input--1" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--1">Apache Arrow Flight SQL C++ client</label><div class="tab-content docutils">
+<p>You need to use
+<a class="reference external" href="https://arrow.apache.org/docs/cpp/api/flight.html#clients"><code class="docutils literal notranslate"><span class="pre">arrow::flight::FlightClient::AuthenticateBasicToken()</span></code></a>
+for authentication.</p>
+<p>You need to add a <code class="docutils literal notranslate"><span class="pre">x-flight-sql-database</span></code> header to
+<a class="reference external" href="https://arrow.apache.org/docs/cpp/api/flight.html#_CPPv4N5arrow6flight17FlightCallOptions7headersE"><code class="docutils literal notranslate"><span class="pre">arrow::flight::FlightCallOptions::headers</span></code></a>
+for database.</p>
+<p>The following example uses <code class="docutils literal notranslate"><span class="pre">PGUSER</span></code> (fallback to <code class="docutils literal notranslate"><span class="pre">USER</span></code>) and
+<code class="docutils literal notranslate"><span class="pre">PGPASSWORD</span></code> environment variables like
+<code class="docutils literal notranslate"><span class="pre">libpq</span></code>. <code class="docutils literal notranslate"><span class="pre">AuthenticateBasicToken()</span></code> returns Bearer token on
+success. So the example users the returned Bearer token to request
+headers to use following requests.</p>
+<p>The following example uses <code class="docutils literal notranslate"><span class="pre">PGDATABASE</span></code> (fallback to <code class="docutils literal notranslate"><span class="pre">PGUSER</span></code>/<code class="docutils literal notranslate"><span class="pre">USER</span></code>)
+environment variable like <code class="docutils literal notranslate"><span class="pre">libpq</span></code>.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos">  1</span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdlib&gt;</span>
+<span class="linenos">  2</span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;fstream&gt;</span>
+<span class="linenos">  3</span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="linenos">  4</span>
+<span class="linenos">  5</span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;arrow/flight/sql/client.h&gt;</span>
+<span class="linenos">  6</span>
+<span class="linenos">  7</span><span class="k">namespace</span><span class="w"> </span><span class="p">{</span>
+<span class="linenos">  8</span><span class="n">std</span><span class="o">::</span><span class="n">string</span>
+<span class="linenos">  9</span><span class="nf">getenv</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">name</span><span class="p">)</span>
+<span class="linenos"> 10</span><span class="p">{</span>
+<span class="linenos"> 11</span><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">getenv</span><span class="p">(</span><span class="n">name</span><span class="p">);</span>
+<span class="linenos"> 12</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<span class="linenos"> 13</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 14</span><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
+<span class="linenos"> 15</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 16</span><span class="w">    </span><span class="k">else</span>
+<span class="linenos"> 17</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 18</span><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">);</span>
+<span class="linenos"> 19</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 20</span><span class="p">}</span>
+<span class="linenos"> 21</span>
+<span class="linenos"> 22</span><span class="n">arrow</span><span class="o">::</span><span class="n">Status</span>
+<span class="linenos"> 23</span><span class="nf">run</span><span class="p">()</span>
+<span class="linenos"> 24</span><span class="p">{</span>
+<span class="linenos"> 25</span><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">uri</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGFLIGHTSQLURI&quot;</span><span class="p">);</span>
+<span class="linenos"> 26</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">uri</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+<span class="linenos"> 27</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 28</span><span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">host</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGHOST&quot;</span><span class="p">);</span>
+<span class="linenos"> 29</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">host</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+<span class="linenos"> 30</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos"> 31</span><span class="w">            </span><span class="n">host</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;localhost&quot;</span><span class="p">;</span>
+<span class="linenos"> 32</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos"> 33</span><span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">sslmode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGSSLMODE&quot;</span><span class="p">);</span>
+<span class="linenos"> 34</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sslmode</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;require&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">sslmode</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;verify-ca&quot;</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">sslmode</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s">&quot;verify-full&quot;</span><span class="p">)</span>
+<span class="linenos"> 35</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos"> 36</span><span class="w">            </span><span class="n">uri</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;grpc+tls://&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">host</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;:15432&quot;</span><span class="p">;</span>
+<span class="linenos"> 37</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos"> 38</span><span class="w">        </span><span class="k">else</span>
+<span class="linenos"> 39</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos"> 40</span><span class="w">            </span><span class="n">uri</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="s">&quot;grpc://&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">host</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;:15432&quot;</span><span class="p">;</span>
+<span class="linenos"> 41</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos"> 42</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 43</span><span class="w">    </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">location</span><span class="p">,</span><span class="w"> </span><span class="n">arrow</span><span class="o">::</span><span class="n">flight</span><span class="o">::</span><span class="n">Location</span><span class="o">::</span><span class="n">Parse</span><span class="p">(</span><span class="n">uri</span><span class="p">));</span>
+<span class="linenos"> 44</span><span class="w">    </span><span class="n">arrow</span><span class="o">::</span><span class="n">flight</span><span class="o">::</span><span class="n">FlightClientOptions</span><span class="w"> </span><span class="n">client_options</span><span class="p">;</span>
+<span class="linenos"> 45</span><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">sslrootcert</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGSSLROOTCERT&quot;</span><span class="p">);</span>
+<span class="linenos"> 46</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sslrootcert</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+<span class="linenos"> 47</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 48</span><span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">home</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;HOME&quot;</span><span class="p">);</span>
+<span class="linenos"> 49</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">home</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+<span class="linenos"> 50</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos"> 51</span><span class="w">            </span><span class="n">sslrootcert</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">home</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;/.postgresql/root.crt&quot;</span><span class="p">;</span>
+<span class="linenos"> 52</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos"> 53</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 54</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">sslrootcert</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+<span class="linenos"> 55</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 56</span><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">ifstream</span><span class="w"> </span><span class="n">input</span><span class="p">(</span><span class="n">sslrootcert</span><span class="p">);</span>
+<span class="linenos"> 57</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
+<span class="linenos"> 58</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos"> 59</span><span class="w">            </span><span class="n">client_options</span><span class="p">.</span><span class="n">tls_root_certs</span><span class="w"> </span><span class="o">=</span>
+<span class="linenos"> 60</span><span class="w">                </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">istreambuf_iterator</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span><span class="p">{</span><span class="n">input</span><span class="p">},</span><span class="w"> </span><span class="p">{});</span>
+<span class="linenos"> 61</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos"> 62</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 63</span><span class="w">    </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">client</span><span class="p">,</span>
+<span class="linenos"> 64</span><span class="w">                          </span><span class="n">arrow</span><span class="o">::</span><span class="n">flight</span><span class="o">::</span><span class="n">FlightClient</span><span class="o">::</span><span class="n">Connect</span><span class="p">(</span><span class="n">location</span><span class="p">,</span><span class="w"> </span><span class="n">client_options</span><span class="p">));</span>
+<span class="linenos"> 65</span><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGUSER&quot;</span><span class="p">);</span>
+<span class="linenos"> 66</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+<span class="linenos"> 67</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 68</span><span class="w">        </span><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;USER&quot;</span><span class="p">);</span>
+<span class="linenos"> 69</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 70</span><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">password</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGPASSWORD&quot;</span><span class="p">);</span>
+<span class="linenos"> 71</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">password</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+<span class="linenos"> 72</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 73</span><span class="w">        </span><span class="n">password</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">;</span>
+<span class="linenos"> 74</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 75</span><span class="w">    </span><span class="n">arrow</span><span class="o">::</span><span class="n">flight</span><span class="o">::</span><span class="n">FlightCallOptions</span><span class="w"> </span><span class="n">call_options</span><span class="p">;</span>
+<span class="linenos"> 76</span><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">database</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGDATABASE&quot;</span><span class="p">);</span>
+<span class="linenos"> 77</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">database</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+<span class="linenos"> 78</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 79</span><span class="w">        </span><span class="n">database</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">user</span><span class="p">;</span>
+<span class="linenos"> 80</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 81</span><span class="w">    </span><span class="n">call_options</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="s">&quot;x-flight-sql-database&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">database</span><span class="p">);</span>
+<span class="linenos"> 82</span><span class="w">    </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">bearer_token</span><span class="p">,</span>
+<span class="linenos"> 83</span><span class="w">                          </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">AuthenticateBasicToken</span><span class="p">(</span><span class="n">call_options</span><span class="p">,</span><span class="w"> </span><span class="n">user</span><span class="p">,</span><span class="w"> </span><span class="n">password</span><span class="p">));</span>
+<span class="linenos"> 84</span><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">bearer_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bearer_token</span><span class="p">.</span><span class="n">first</span><span class="p">;</span>
+<span class="linenos"> 85</span><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">bearer_value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bearer_token</span><span class="p">.</span><span class="n">second</span><span class="p">;</span>
+<span class="linenos"> 86</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">bearer_name</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">bearer_value</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+<span class="linenos"> 87</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 88</span><span class="w">        </span><span class="n">call_options</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">bearer_name</span><span class="p">,</span><span class="w"> </span><span class="n">bearer_value</span><span class="p">);</span>
+<span class="linenos"> 89</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 90</span><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">client</span><span class="o">-&gt;</span><span class="n">Close</span><span class="p">();</span>
+<span class="linenos"> 91</span><span class="p">}</span>
+<span class="linenos"> 92</span><span class="p">};</span><span class="w">  </span><span class="c1">// namespace</span>
+<span class="linenos"> 93</span>
+<span class="linenos"> 94</span><span class="kt">int</span>
+<span class="linenos"> 95</span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span>
+<span class="linenos"> 96</span><span class="p">{</span>
+<span class="linenos"> 97</span><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">run</span><span class="p">();</span>
+<span class="linenos"> 98</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">status</span><span class="p">.</span><span class="n">ok</span><span class="p">())</span>
+<span class="linenos"> 99</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos">100</span><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Authenticated!&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="linenos">101</span><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">EXIT_SUCCESS</span><span class="p">;</span>
+<span class="linenos">102</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos">103</span><span class="w">    </span><span class="k">else</span>
+<span class="linenos">104</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos">105</span><span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">status</span><span class="p">.</span><span class="n">ToString</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="linenos">106</span><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">EXIT_FAILURE</span><span class="p">;</span>
+<span class="linenos">107</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos">108</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--0-input--2" name="tab-set--0" type="radio"><label class="tab-label" for="tab-set--0-input--2">ADBC Flight SQL driver</label><div class="tab-content docutils">
+<p>You need to set the
+<code class="docutils literal notranslate"><span class="pre">username</span></code> and <code class="docutils literal notranslate"><span class="pre">password</span></code> options for authentication. See also the
+<a class="reference external" href="https://arrow.apache.org/adbc/current/driver/flight_sql.html#authentication">Authentication</a> document.</p>
+<p>You need to set the
+<code class="docutils literal notranslate"><span class="pre">adbc.flight.sql.rpc.call_header.x-flight-sql-database</span></code> option for
+database. See also the <a class="reference external" href="https://arrow.apache.org/adbc/current/driver/flight_sql.html#custom-call-headers">Custom Call
+Headers</a> document.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="linenos">  1</span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span>
+<span class="linenos">  2</span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdlib.h&gt;</span>
+<span class="linenos">  3</span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string.h&gt;</span>
+<span class="linenos">  4</span>
+<span class="linenos">  5</span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;adbc.h&gt;</span>
+<span class="linenos">  6</span>
+<span class="linenos">  7</span><span class="cp">#ifndef ADBC_ERROR_INIT</span>
+<span class="linenos">  8</span><span class="cp">#   define ADBC_ERROR_INIT \</span>
+<span class="linenos">  9</span><span class="cp">        {                   \</span>
+<span class="linenos"> 10</span><span class="cp">            0               \</span>
+<span class="linenos"> 11</span><span class="cp">        }</span>
+<span class="linenos"> 12</span><span class="cp">#endif</span>
+<span class="linenos"> 13</span>
+<span class="linenos"> 14</span><span class="k">static</span><span class="w"> </span><span class="n">AdbcStatusCode</span>
+<span class="linenos"> 15</span><span class="nf">database_init</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">AdbcDatabase</span><span class="o">*</span><span class="w"> </span><span class="n">database</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">AdbcError</span><span class="o">*</span><span class="w"> </span><span class="n">error</span><span class="p">)</span>
+<span class="linenos"> 16</span><span class="p">{</span>
+<span class="linenos"> 17</span><span class="w">    </span><span class="n">AdbcStatusCode</span><span class="w"> </span><span class="n">code</span><span class="p">;</span>
+<span class="linenos"> 18</span><span class="w">    </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AdbcDatabaseSetOption</span><span class="p">(</span><span class="n">database</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;driver&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;adbc_driver_flightsql&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="linenos"> 19</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">ADBC_STATUS_OK</span><span class="p">)</span>
+<span class="linenos"> 20</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 21</span><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">code</span><span class="p">;</span>
+<span class="linenos"> 22</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 23</span><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">uri</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGFLIGHTSQLURI&quot;</span><span class="p">);</span>
+<span class="linenos"> 24</span><span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="n">uri_buffer</span><span class="p">[</span><span class="mi">4096</span><span class="p">];</span>
+<span class="linenos"> 25</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">uri</span><span class="p">)</span>
+<span class="linenos"> 26</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 27</span><span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">host</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGHOST&quot;</span><span class="p">);</span>
+<span class="linenos"> 28</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">host</span><span class="p">)</span>
+<span class="linenos"> 29</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos"> 30</span><span class="w">            </span><span class="n">host</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;localhost&quot;</span><span class="p">;</span>
+<span class="linenos"> 31</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos"> 32</span><span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">sslmode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGSSLMODE&quot;</span><span class="p">);</span>
+<span class="linenos"> 33</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sslmode</span><span class="w"> </span><span class="o">&amp;&amp;</span>
+<span class="linenos"> 34</span><span class="w">            </span><span class="p">((</span><span class="n">strcmp</span><span class="p">(</span><span class="n">sslmode</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;require&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="p">(</span><span class="n">strcmp</span><span class="p">(</span><span class="n">sslmode</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;verify-ca&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">||</span>
+<span class="linenos"> 35</span><span class="w">             </span><span class="p">(</span><span class="n">strcmp</span><span class="p">(</span><span class="n">sslmode</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;verify-full&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)))</span>
+<span class="linenos"> 36</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos"> 37</span><span class="w">            </span><span class="n">snprintf</span><span class="p">(</span><span class="n">uri_buffer</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">uri_buffer</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;grpc+tls://%s:15432&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">host</span><span class="p">);</span>
+<span class="linenos"> 38</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos"> 39</span><span class="w">        </span><span class="k">else</span>
+<span class="linenos"> 40</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos"> 41</span><span class="w">            </span><span class="n">snprintf</span><span class="p">(</span><span class="n">uri_buffer</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">uri_buffer</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;grpc://%s:15432&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">host</span><span class="p">);</span>
+<span class="linenos"> 42</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos"> 43</span><span class="w">        </span><span class="n">uri</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">uri_buffer</span><span class="p">;</span>
+<span class="linenos"> 44</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 45</span><span class="w">    </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AdbcDatabaseSetOption</span><span class="p">(</span><span class="n">database</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;uri&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">uri</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="linenos"> 46</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">ADBC_STATUS_OK</span><span class="p">)</span>
+<span class="linenos"> 47</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 48</span><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">code</span><span class="p">;</span>
+<span class="linenos"> 49</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 50</span><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">sslrootcert</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGSSLROOTCERT&quot;</span><span class="p">);</span>
+<span class="linenos"> 51</span><span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="n">sslrootcert_buffer</span><span class="p">[</span><span class="mi">4096</span><span class="p">];</span>
+<span class="linenos"> 52</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">sslrootcert</span><span class="p">)</span>
+<span class="linenos"> 53</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 54</span><span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">home</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;HOME&quot;</span><span class="p">);</span>
+<span class="linenos"> 55</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">home</span><span class="p">)</span>
+<span class="linenos"> 56</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos"> 57</span><span class="w">            </span><span class="n">snprintf</span><span class="p">(</span><span class="n">sslrootcert_buffer</span><span class="p">,</span>
+<span class="linenos"> 58</span><span class="w">                     </span><span class="k">sizeof</span><span class="p">(</span><span class="n">sslrootcert_buffer</span><span class="p">),</span>
+<span class="linenos"> 59</span><span class="w">                     </span><span class="s">&quot;%s/.postgresql/root.crt&quot;</span><span class="p">,</span>
+<span class="linenos"> 60</span><span class="w">                     </span><span class="n">home</span><span class="p">);</span>
+<span class="linenos"> 61</span><span class="w">            </span><span class="n">sslrootcert</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sslrootcert_buffer</span><span class="p">;</span>
+<span class="linenos"> 62</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos"> 63</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 64</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sslrootcert</span><span class="p">)</span>
+<span class="linenos"> 65</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 66</span><span class="w">        </span><span class="kt">FILE</span><span class="o">*</span><span class="w"> </span><span class="n">input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fopen</span><span class="p">(</span><span class="n">sslrootcert</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;r&quot;</span><span class="p">);</span>
+<span class="linenos"> 67</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
+<span class="linenos"> 68</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos"> 69</span><span class="w">            </span><span class="kt">char</span><span class="w"> </span><span class="n">sslrootcert_data</span><span class="p">[</span><span class="mi">40960</span><span class="p">];</span>
+<span class="linenos"> 70</span><span class="w">            </span><span class="kt">size_t</span><span class="w"> </span><span class="n">read_size</span><span class="w"> </span><span class="o">=</span>
+<span class="linenos"> 71</span><span class="w">                </span><span class="n">fread</span><span class="p">(</span><span class="n">sslrootcert_data</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">sslrootcert_data</span><span class="p">),</span><span class="w"> </span><span class="n">input</span><span class="p">);</span>
+<span class="linenos"> 72</span><span class="w">            </span><span class="n">fclose</span><span class="p">(</span><span class="n">input</span><span class="p">);</span>
+<span class="linenos"> 73</span><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">read_size</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">sslrootcert_data</span><span class="p">))</span>
+<span class="linenos"> 74</span><span class="w">            </span><span class="p">{</span>
+<span class="linenos"> 75</span><span class="w">                </span><span class="n">code</span><span class="w"> </span><span class="o">=</span>
+<span class="linenos"> 76</span><span class="w">                    </span><span class="n">AdbcDatabaseSetOption</span><span class="p">(</span><span class="n">database</span><span class="p">,</span>
+<span class="linenos"> 77</span><span class="w">                                          </span><span class="s">&quot;adbc.flight.sql.client_option.tls_root_certs&quot;</span><span class="p">,</span>
+<span class="linenos"> 78</span><span class="w">                                          </span><span class="n">sslrootcert_data</span><span class="p">,</span>
+<span class="linenos"> 79</span><span class="w">                                          </span><span class="n">error</span><span class="p">);</span>
+<span class="linenos"> 80</span><span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">ADBC_STATUS_OK</span><span class="p">)</span>
+<span class="linenos"> 81</span><span class="w">                </span><span class="p">{</span>
+<span class="linenos"> 82</span><span class="w">                    </span><span class="k">return</span><span class="w"> </span><span class="n">code</span><span class="p">;</span>
+<span class="linenos"> 83</span><span class="w">                </span><span class="p">}</span>
+<span class="linenos"> 84</span><span class="w">            </span><span class="p">}</span>
+<span class="linenos"> 85</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos"> 86</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 87</span><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGUSER&quot;</span><span class="p">);</span>
+<span class="linenos"> 88</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">user</span><span class="p">)</span>
+<span class="linenos"> 89</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 90</span><span class="w">        </span><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;USER&quot;</span><span class="p">);</span>
+<span class="linenos"> 91</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos"> 92</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+<span class="linenos"> 93</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos"> 94</span><span class="w">        </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AdbcDatabaseSetOption</span><span class="p">(</span><span class="n">database</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;username&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">user</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="linenos"> 95</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">ADBC_STATUS_OK</span><span class="p">)</span>
+<span class="linenos"> 96</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos"> 97</span><span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">code</span><span class="p">;</span>
+<span class="linenos"> 98</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos"> 99</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos">100</span><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">password</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGPASSWORD&quot;</span><span class="p">);</span>
+<span class="linenos">101</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+<span class="linenos">102</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos">103</span><span class="w">        </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AdbcDatabaseSetOption</span><span class="p">(</span><span class="n">database</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;password&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">password</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="linenos">104</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">ADBC_STATUS_OK</span><span class="p">)</span>
+<span class="linenos">105</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos">106</span><span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">code</span><span class="p">;</span>
+<span class="linenos">107</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos">108</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos">109</span><span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">database_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;PGDATABASE&quot;</span><span class="p">);</span>
+<span class="linenos">110</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">database_name</span><span class="p">)</span>
+<span class="linenos">111</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos">112</span><span class="w">        </span><span class="n">database_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">user</span><span class="p">;</span>
+<span class="linenos">113</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos">114</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">database_name</span><span class="p">)</span>
+<span class="linenos">115</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos">116</span><span class="w">        </span><span class="n">code</span><span class="w"> </span><span class="o">=</span>
+<span class="linenos">117</span><span class="w">            </span><span class="n">AdbcDatabaseSetOption</span><span class="p">(</span><span class="n">database</span><span class="p">,</span>
+<span class="linenos">118</span><span class="w">                                  </span><span class="s">&quot;adbc.flight.sql.rpc.call_header.x-flight-sql-database&quot;</span><span class="p">,</span>
+<span class="linenos">119</span><span class="w">                                  </span><span class="n">database_name</span><span class="p">,</span>
+<span class="linenos">120</span><span class="w">                                  </span><span class="n">error</span><span class="p">);</span>
+<span class="linenos">121</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">ADBC_STATUS_OK</span><span class="p">)</span>
+<span class="linenos">122</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos">123</span><span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">code</span><span class="p">;</span>
+<span class="linenos">124</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos">125</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos">126</span><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">AdbcDatabaseInit</span><span class="p">(</span><span class="n">database</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="linenos">127</span><span class="p">}</span>
+<span class="linenos">128</span>
+<span class="linenos">129</span><span class="k">static</span><span class="w"> </span><span class="n">AdbcStatusCode</span>
+<span class="linenos">130</span><span class="nf">run</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">AdbcError</span><span class="o">*</span><span class="w"> </span><span class="n">error</span><span class="p">)</span>
+<span class="linenos">131</span><span class="p">{</span>
+<span class="linenos">132</span><span class="w">    </span><span class="n">AdbcStatusCode</span><span class="w"> </span><span class="n">code</span><span class="p">;</span>
+<span class="linenos">133</span><span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">AdbcDatabase</span><span class="w"> </span><span class="n">database</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="linenos">134</span><span class="w">    </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AdbcDatabaseNew</span><span class="p">(</span><span class="o">&amp;</span><span class="n">database</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="linenos">135</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">code</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">ADBC_STATUS_OK</span><span class="p">)</span>
+<span class="linenos">136</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos">137</span><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">code</span><span class="p">;</span>
+<span class="linenos">138</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos">139</span><span class="w">    </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">database_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">database</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="linenos">140</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">code</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ADBC_STATUS_OK</span><span class="p">)</span>
+<span class="linenos">141</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos">142</span><span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">AdbcConnection</span><span class="w"> </span><span class="n">connection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+<span class="linenos">143</span><span class="w">        </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AdbcConnectionNew</span><span class="p">(</span><span class="o">&amp;</span><span class="n">connection</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="linenos">144</span><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">code</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ADBC_STATUS_OK</span><span class="p">)</span>
+<span class="linenos">145</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos">146</span><span class="w">            </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AdbcConnectionInit</span><span class="p">(</span><span class="o">&amp;</span><span class="n">connection</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">database</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="linenos">147</span><span class="w">            </span><span class="n">AdbcConnectionRelease</span><span class="p">(</span><span class="o">&amp;</span><span class="n">connection</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="linenos">148</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos">149</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos">150</span><span class="w">    </span><span class="n">AdbcDatabaseRelease</span><span class="p">(</span><span class="o">&amp;</span><span class="n">database</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="linenos">151</span><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">code</span><span class="p">;</span>
+<span class="linenos">152</span><span class="p">}</span>
+<span class="linenos">153</span>
+<span class="linenos">154</span><span class="kt">int</span>
+<span class="linenos">155</span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="o">**</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span>
+<span class="linenos">156</span><span class="p">{</span>
+<span class="linenos">157</span><span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">AdbcError</span><span class="w"> </span><span class="n">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ADBC_ERROR_INIT</span><span class="p">;</span>
+<span class="linenos">158</span><span class="w">    </span><span class="n">AdbcStatusCode</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">run</span><span class="p">(</span><span class="o">&amp;</span><span class="n">error</span><span class="p">);</span>
+<span class="linenos">159</span><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">code</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ADBC_STATUS_OK</span><span class="p">)</span>
+<span class="linenos">160</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos">161</span><span class="w">        </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;Authenticated!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="linenos">162</span><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">EXIT_SUCCESS</span><span class="p">;</span>
+<span class="linenos">163</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos">164</span><span class="w">    </span><span class="k">else</span>
+<span class="linenos">165</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos">166</span><span class="w">        </span><span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">.</span><span class="n">message</span><span class="p">);</span>
+<span class="linenos">167</span><span class="w">        </span><span class="n">error</span><span class="p">.</span><span class="n">release</span><span class="p">(</span><span class="o">&amp;</span><span class="n">error</span><span class="p">);</span>
+<span class="linenos">168</span><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">EXIT_FAILURE</span><span class="p">;</span>
+<span class="linenos">169</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos">170</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="how-to-query">
+<h2>How to query<a class="headerlink" href="#how-to-query" title="Permalink to this heading">#</a></h2>
+<p>You can use an ad-hoc SQL statement or a prepared SQL statement to
+query.</p>
+<section id="ad-hoc-sql-statement">
+<h3>Ad-hoc SQL statement<a class="headerlink" href="#ad-hoc-sql-statement" title="Permalink to this heading">#</a></h3>
+<div class="tab-set docutils">
+<input checked="True" class="tab-input" id="tab-set--1-input--1" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--1">Apache Arrow Flight SQL C++ client</label><div class="tab-content docutils">
+<p>You need to use
+<a class="reference external" href="https://arrow.apache.org/docs/cpp/api/flightsql.html#_CPPv4N5arrow6flight3sql15FlightSqlClient7ExecuteERK17FlightCallOptionsRKNSt6stringERK11Transaction"><code class="docutils literal notranslate"><span class="pre">arrow::flight::sql::FlightSqlClient::Execute()</span></code></a>
+to execute a query.</p>
+<p>You need to use
+<a class="reference external" href="https://arrow.apache.org/docs/cpp/api/flightsql.html#_CPPv4N5arrow6flight3sql15FlightSqlClient5DoGetERK17FlightCallOptionsRK6Ticket"><code class="docutils literal notranslate"><span class="pre">arrow::flight::sql::FlightSqlClient::DoGet()</span></code></a>
+to get results.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="n">arrow</span><span class="o">::</span><span class="n">Status</span>
+<span class="linenos"> 2</span><span class="nf">run</span><span class="p">()</span>
+<span class="linenos"> 3</span><span class="p">{</span>
+<span class="linenos"> 4</span><span class="w">    </span><span class="n">arrow</span><span class="o">::</span><span class="n">flight</span><span class="o">::</span><span class="n">FlightCallOptions</span><span class="w"> </span><span class="n">call_options</span><span class="p">;</span>
+<span class="linenos"> 5</span><span class="w">    </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">sql_client</span><span class="p">,</span><span class="w"> </span><span class="n">connect</span><span class="p">(</span><span class="n">call_options</span><span class="p">));</span>
+<span class="linenos"> 6</span><span class="w">    </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span>
+<span class="linenos"> 7</span><span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">info</span><span class="p">,</span>
+<span class="linenos"> 8</span><span class="w">        </span><span class="n">sql_client</span><span class="o">-&gt;</span><span class="n">Execute</span><span class="p">(</span><span class="n">call_options</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;SELECT 1 AS number, &#39;hello&#39; AS string&quot;</span><span class="p">));</span>
+<span class="linenos"> 9</span><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">endpoint</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">info</span><span class="o">-&gt;</span><span class="n">endpoints</span><span class="p">())</span>
+<span class="linenos">10</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos">11</span><span class="w">        </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">reader</span><span class="p">,</span>
+<span class="linenos">12</span><span class="w">                              </span><span class="n">sql_client</span><span class="o">-&gt;</span><span class="n">DoGet</span><span class="p">(</span><span class="n">call_options</span><span class="p">,</span><span class="w"> </span><span class="n">endpoint</span><span class="p">.</span><span class="n">ticket</span><span class="p">));</span>
+<span class="linenos">13</span><span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="nb">true</span><span class="p">)</span>
+<span class="linenos">14</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos">15</span><span class="w">            </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">chunk</span><span class="p">,</span><span class="w"> </span><span class="n">reader</span><span class="o">-&gt;</span><span class="n">Next</span><span class="p">());</span>
+<span class="linenos">16</span><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">chunk</span><span class="p">.</span><span class="n">data</span><span class="p">)</span>
+<span class="linenos">17</span><span class="w">            </span><span class="p">{</span>
+<span class="linenos">18</span><span class="w">                </span><span class="k">break</span><span class="p">;</span>
+<span class="linenos">19</span><span class="w">            </span><span class="p">}</span>
+<span class="linenos">20</span><span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">chunk</span><span class="p">.</span><span class="n">data</span><span class="o">-&gt;</span><span class="n">ToString</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="linenos">21</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos">22</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos">23</span><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">sql_client</span><span class="o">-&gt;</span><span class="n">Close</span><span class="p">();</span>
+<span class="linenos">24</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--1-input--2" name="tab-set--1" type="radio"><label class="tab-label" for="tab-set--1-input--2">ADBC Flight SQL driver</label><div class="tab-content docutils">
+<p>TODO</p>
+</div>
+</div>
+</section>
+<section id="prepared-sql-statement">
+<h3>Prepared SQL statement<a class="headerlink" href="#prepared-sql-statement" title="Permalink to this heading">#</a></h3>
+<div class="tab-set docutils">
+<input checked="True" class="tab-input" id="tab-set--2-input--1" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--1">Apache Arrow Flight SQL C++ client</label><div class="tab-content docutils">
+<p>You need to use
+<a class="reference external" href="https://arrow.apache.org/docs/cpp/api/flightsql.html#_CPPv4N5arrow6flight3sql15FlightSqlClient7PrepareERK17FlightCallOptionsRKNSt6stringERK11Transaction"><code class="docutils literal notranslate"><span class="pre">arrow::flight::sql::FlightSqlClient::Prepare()</span></code></a>
+to prepare a query.</p>
+<p>You need to use
+<a class="reference external" href="https://arrow.apache.org/docs/cpp/api/flightsql.html#_CPPv4N5arrow6flight3sql17PreparedStatement13SetParametersENSt10shared_ptrI11RecordBatchEE"><code class="docutils literal notranslate"><span class="pre">arrow::flight::sql::PreparedStatement::SetParameters()</span></code></a>
+to set parameters.</p>
+<p>You need to use
+<a class="reference external" href="https://arrow.apache.org/docs/cpp/api/flightsql.html#_CPPv4N5arrow6flight3sql17PreparedStatement7ExecuteERK17FlightCallOptions"><code class="docutils literal notranslate"><span class="pre">arrow::flight::sql::PreparedStatement::Execute()</span></code></a>
+to execute a prepared statement with parameters.</p>
+<p>You need to use
+<a class="reference external" href="https://arrow.apache.org/docs/cpp/api/flightsql.html#_CPPv4N5arrow6flight3sql15FlightSqlClient5DoGetERK17FlightCallOptionsRK6Ticket"><code class="docutils literal notranslate"><span class="pre">arrow::flight::sql::FlightSqlClient::DoGet()</span></code></a>
+to get results.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="n">arrow</span><span class="o">::</span><span class="n">Status</span>
+<span class="linenos"> 2</span><span class="nf">run</span><span class="p">()</span>
+<span class="linenos"> 3</span><span class="p">{</span>
+<span class="linenos"> 4</span><span class="w">    </span><span class="n">arrow</span><span class="o">::</span><span class="n">flight</span><span class="o">::</span><span class="n">FlightCallOptions</span><span class="w"> </span><span class="n">call_options</span><span class="p">;</span>
+<span class="linenos"> 5</span><span class="w">    </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">sql_client</span><span class="p">,</span><span class="w"> </span><span class="n">connect</span><span class="p">(</span><span class="n">call_options</span><span class="p">));</span>
+<span class="linenos"> 6</span><span class="w">    </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">statement</span><span class="p">,</span>
+<span class="linenos"> 7</span><span class="w">                          </span><span class="n">sql_client</span><span class="o">-&gt;</span><span class="n">Prepare</span><span class="p">(</span><span class="n">call_options</span><span class="p">,</span>
+<span class="linenos"> 8</span><span class="w">                                              </span><span class="s">&quot;SELECT i &quot;</span>
+<span class="linenos"> 9</span><span class="w">                                              </span><span class="s">&quot;  FROM generate_series(1, 100) &quot;</span>
+<span class="linenos">10</span><span class="w">                                              </span><span class="s">&quot;       AS series (i) &quot;</span>
+<span class="linenos">11</span><span class="w">                                              </span><span class="s">&quot;  WHERE i &lt; $1&quot;</span><span class="p">));</span>
+<span class="linenos">12</span><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">schema</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">arrow</span><span class="o">::</span><span class="n">schema</span><span class="p">({</span><span class="n">arrow</span><span class="o">::</span><span class="n">field</span><span class="p">(</span><span class="s">&quot;i&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">arrow</span><span class="o">::</span><span class="n">int32</span><span class="p">())});</span>
+<span class="linenos">13</span><span class="w">    </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span>
+<span class="linenos">14</span><span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">record_batch_builder</span><span class="p">,</span>
+<span class="linenos">15</span><span class="w">        </span><span class="n">arrow</span><span class="o">::</span><span class="n">RecordBatchBuilder</span><span class="o">::</span><span class="n">Make</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span><span class="w"> </span><span class="n">arrow</span><span class="o">::</span><span class="n">default_memory_pool</span><span class="p">()));</span>
+<span class="linenos">16</span><span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">i_builder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">record_batch_builder</span><span class="o">-&gt;</span><span class="n">GetFieldAs</span><span class="o">&lt;</span><span class="n">arrow</span><span class="o">::</span><span class="n">Int32Builder</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="linenos">17</span><span class="w">    </span><span class="n">ARROW_RETURN_NOT_OK</span><span class="p">(</span><span class="n">i_builder</span><span class="o">-&gt;</span><span class="n">Append</span><span class="p">(</span><span class="mi">10</span><span class="p">));</span>
+<span class="linenos">18</span><span class="w">    </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">record_batch</span><span class="p">,</span><span class="w"> </span><span class="n">record_batch_builder</span><span class="o">-&gt;</span><span class="n">Flush</span><span class="p">());</span>
+<span class="linenos">19</span><span class="w">    </span><span class="n">ARROW_RETURN_NOT_OK</span><span class="p">(</span><span class="n">statement</span><span class="o">-&gt;</span><span class="n">SetParameters</span><span class="p">(</span><span class="n">record_batch</span><span class="p">));</span>
+<span class="linenos">20</span><span class="w">    </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">info</span><span class="p">,</span><span class="w"> </span><span class="n">statement</span><span class="o">-&gt;</span><span class="n">Execute</span><span class="p">());</span>
+<span class="linenos">21</span><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">endpoint</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">info</span><span class="o">-&gt;</span><span class="n">endpoints</span><span class="p">())</span>
+<span class="linenos">22</span><span class="w">    </span><span class="p">{</span>
+<span class="linenos">23</span><span class="w">        </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">reader</span><span class="p">,</span>
+<span class="linenos">24</span><span class="w">                              </span><span class="n">sql_client</span><span class="o">-&gt;</span><span class="n">DoGet</span><span class="p">(</span><span class="n">call_options</span><span class="p">,</span><span class="w"> </span><span class="n">endpoint</span><span class="p">.</span><span class="n">ticket</span><span class="p">));</span>
+<span class="linenos">25</span><span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="nb">true</span><span class="p">)</span>
+<span class="linenos">26</span><span class="w">        </span><span class="p">{</span>
+<span class="linenos">27</span><span class="w">            </span><span class="n">ARROW_ASSIGN_OR_RAISE</span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">chunk</span><span class="p">,</span><span class="w"> </span><span class="n">reader</span><span class="o">-&gt;</span><span class="n">Next</span><span class="p">());</span>
+<span class="linenos">28</span><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">chunk</span><span class="p">.</span><span class="n">data</span><span class="p">)</span>
+<span class="linenos">29</span><span class="w">            </span><span class="p">{</span>
+<span class="linenos">30</span><span class="w">                </span><span class="k">break</span><span class="p">;</span>
+<span class="linenos">31</span><span class="w">            </span><span class="p">}</span>
+<span class="linenos">32</span><span class="w">            </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">chunk</span><span class="p">.</span><span class="n">data</span><span class="o">-&gt;</span><span class="n">ToString</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="linenos">33</span><span class="w">        </span><span class="p">}</span>
+<span class="linenos">34</span><span class="w">    </span><span class="p">}</span>
+<span class="linenos">35</span><span class="w">    </span><span class="n">ARROW_RETURN_NOT_OK</span><span class="p">(</span><span class="n">statement</span><span class="o">-&gt;</span><span class="n">Close</span><span class="p">());</span>
+<span class="linenos">36</span><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">sql_client</span><span class="o">-&gt;</span><span class="n">Close</span><span class="p">();</span>
+<span class="linenos">37</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<input class="tab-input" id="tab-set--2-input--2" name="tab-set--2" type="radio"><label class="tab-label" for="tab-set--2-input--2">ADBC Flight SQL driver</label><div class="tab-content docutils">
+<p>TODO</p>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="configuration.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Configuration</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="development/release.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Release</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-to-connect">How to connect</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-to-query">How to query</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ad-hoc-sql-statement">Ad-hoc SQL statement</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prepared-sql-statement">Prepared SQL statement</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/apache/arrow-flight-sql-postgresql/edit/main/docs/source/client.md">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div class="tocsection sourcelink">
+    <a href="_sources/client.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+  <p class="copyright">
+    
+      © Copyright 2022-2023, Apache Arrow Developers.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
