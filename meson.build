@@ -23,7 +23,7 @@ project('arrow-flight-sql-postgresql', 'c', 'cpp',
         license: 'Apache-2.0',
         # Meson 1.1.0 or later is required.
         # license_files: ['LICENSE.txt', 'NOTICE.txt'],
-        version: '0.1.0')
+        version: '0.2.0')
 
 prefix = get_option('prefix')
 data_dir = prefix / get_option('datadir')
