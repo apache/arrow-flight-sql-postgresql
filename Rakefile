@@ -102,7 +102,9 @@ namespace :doc do
         sh("git", "commit", "-m", "Publish", "--allow-empty")
         unless ENV["GITHUB_EVENT_NAME"] == "pull_request"
           dry_run = []
-          dry_run << "--dry-run" unless ENV["GITHUB_REF_NAME"] == "main"
+          need_publish = ((is_release and not is_release_candiate) or
+                          ENV["GITHUB_REF_NAME"] == "main")
+          dry_run << "--dry-run" unless need_publish
           sh("git", "push", *dry_run, "origin", "asf-site:asf-site")
         end
       end
