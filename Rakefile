@@ -289,6 +289,24 @@ def re_run_verify_rc_jobs(rc_tag)
      run_id)
 end
 
+def overview(remove_link: false, remove_markup: false)
+  # Extract the first "## ..." section.
+  first_section = File.read("doc/source/overview.md").split(/^## /)[1]
+  # Remove section title
+  first_section = first_section.lines[1..-1].join
+  if remove_link
+    # [Apache Arrow Flight SQL](https://arrow.apache.org/...) ->
+    # Apache Arrow Flight SQL
+    first_section.gsub!(/\[(.+?)\]\(.+?\)/m, "\\1")
+  end
+  if remove_markup
+    # `INSERT` ->
+    # INSERT
+    first_section.gsub!(/`(.+?)`/m, "\\1")
+  end
+  first_section.strip
+end
+
 task :env do
   load_env
 end
@@ -540,17 +558,17 @@ Flight SQL adapter for PostgreSQL doesn't reach 1.0.0 yet.
     desc "Show blog announce template"
     task :blog => :env do
       previous_version = env_value("PREVIOUS_VERSION")
-      commit_range = "#{previous_version}..#{version}"
+      commit_range = "#{previous_version}...#{version}"
       n_commits = sh_capture_output("git", "rev-list", "--count", commit_range).chomp
       contributor_command = [
         "git",
         "shortlog",
         "--perl-regexp",
-        "--author='^((?!dependabot\[bot\]).*)$'",
+        "--author=^((?!dependabot\\[bot\\]).*)$",
         "-sn",
         commit_range,
       ]
-      contributors = sh_capture_output(*contributor_command)
+      contributors = sh_capture_output(*contributor_command).rstrip
       n_contributors = contributors.lines.size
       post_date = env_value("POST_DATE", Date.today.strftime("%Y-%m-%d"))
       puts(<<-POST)
@@ -582,16 +600,24 @@ limitations under the License.
 
 The Apache Arrow team is pleased to announce the #{version} release of
 the Apache Arrow Flight SQL adapter for PostgreSQL. This includes
-[**#{n_commits} commits][commits] from [**#{n_contributors} distinct
+[**#{n_commits} commits**][commits] from [**#{n_contributors} distinct
 contributors**][contributors].
 
 The release notes below are not exhaustive and only expose selected
-highlights of the release. Many other bugfixes and improvements have
+highlights of the release. Many other bug fixes and improvements have
 been made: we refer you to [the complete release notes][release-note].
+
+## What is Apache Arrow Flight SQL adapter for PostgreSQL?
+
+#{overview}
 
 ## Release Highlights
 
 <!-- TODO: fill this portion in. -->
+
+## Install
+
+See [the install document][install] for details.
 
 ## Contributors
 
@@ -608,11 +634,12 @@ $ #{contributor_command.join(" ")}
 
 We welcome questions and contributions from all interested. Issues can
 be filed on [GitHub][issues], and questions can be directed to GitHub or
-[the Arrow mailing lists][mailing-list].
+[the Apache Arrow mailing lists][mailing-list].
 
-[commits]: ${MILESTONE_URL}
+[commits]: https://github.com/apache/arrow-flight-sql-postgresql/compare/#{commit_range}
 [contributors]: #contributors
-[release-note]: https://arrow.apache.org/flight-sql-postgresql/current/release-notes.html\#version-#{version}
+[release-note]: https://arrow.apache.org/flight-sql-postgresql/#{version}/release-notes.html\#version-#{version.gsub(".", "-")}
+[install]: https://arrow.apache.org/flight-sql-postgresql/#{version}/install.html
 [issues]: https://github.com/apache/arrow-flight-sql-postgresql/issues
 [mailing-list]: {% link community.md %}
       POST
@@ -620,13 +647,7 @@ be filed on [GitHub][issues], and questions can be directed to GitHub or
 
     desc "Show mail announce template"
     task :mail => :env do
-      blog_path_date = Date.today("%Y/%m/%d")
-      # Extract the first "## ..." section.
-      overview = File.read("doc/source/overview.md").split(/^## /)[1]
-      # Remove links:
-      #   [Apache Arrow Flight SQL][apache-arrow-flight-sql] ->
-      #   Apache Arrow Flight SQL
-      overview.gsub!(/\[(.+?)\]\[.+?\]/m, "\\1")
+      blog_path_date = Date.today.strftime("%Y/%m/%d")
       puts(<<-MAIL)
 To: announce@apache.org, user@arrow.apache.org, dev@arrow.apache.org
 From: XXX@apache.org
@@ -642,10 +663,12 @@ Read about what's new in the release:
   https://arrow.apache.org/blog/#{blog_path_date}/flight-sql-postgresql-#{version}-release/
 
 Release note:
-  https://arrow.apache.org/flight-sql-postgresql/#{version}/release-note.html\#version-#{version}
+  https://arrow.apache.org/flight-sql-postgresql/#{version}/release-note.html\#version-#{version.gsub(".", "-")}
 
 
-#{overview}
+What is Apache Arrow Flight SQL adapter for PostgreSQL?
+
+#{overview(remove_link: true, remove_markup: true)}
 
 
 Please report any feedback to the GitHub issues or mailing lists:
