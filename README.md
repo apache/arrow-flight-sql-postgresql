@@ -26,7 +26,7 @@ See https://arrow.apache.org/flight-sql-postgresql/ for details.
 
 ## How to contribute
 
-See [CONTRIBUTING.md](CONTRIBUTION.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
