@@ -652,20 +652,20 @@ be filed on [GitHub][issues], and questions can be directed to GitHub or
       blog_path_date = Date.today.strftime("%Y/%m/%d")
       puts(<<-MAIL)
 To: announce@apache.org, user@arrow.apache.org, dev@arrow.apache.org
-From: XXX@apache.org
 Subject: [ANNOUNCE] Apache Arrow Flight SQL adapter for PostgreSQL #{version} released
+From: XXX@apache.org
 
 The Apache Arrow team is pleased to announce the #{version} release of
 the Apache Arrow Flight SQL adapter for PostgreSQL.
 
 The release is available now from our website:
-  https://arrow.apache.org/flight-sql-postgresql/#{version}/install/
+  https://arrow.apache.org/flight-sql-postgresql/#{version}/install.html
 
 Read about what's new in the release:
   https://arrow.apache.org/blog/#{blog_path_date}/flight-sql-postgresql-#{version}-release/
 
 Release note:
-  https://arrow.apache.org/flight-sql-postgresql/#{version}/release-note.html\#version-#{version.gsub(".", "-")}
+  https://arrow.apache.org/flight-sql-postgresql/#{version}/release-notes.html\#version-#{version.gsub(".", "-")}
 
 
 What is Apache Arrow Flight SQL adapter for PostgreSQL?
