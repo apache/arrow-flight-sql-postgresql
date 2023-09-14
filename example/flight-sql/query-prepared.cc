@@ -128,7 +128,7 @@ run()
 	ARROW_RETURN_NOT_OK(i_builder->Append(10));
 	ARROW_ASSIGN_OR_RAISE(auto record_batch, record_batch_builder->Flush());
 	ARROW_RETURN_NOT_OK(statement->SetParameters(record_batch));
-	ARROW_ASSIGN_OR_RAISE(auto info, statement->Execute());
+	ARROW_ASSIGN_OR_RAISE(auto info, statement->Execute(call_options));
 	for (const auto& endpoint : info->endpoints())
 	{
 		ARROW_ASSIGN_OR_RAISE(auto reader,
@@ -143,7 +143,7 @@ run()
 			std::cout << chunk.data->ToString() << std::endl;
 		}
 	}
-	ARROW_RETURN_NOT_OK(statement->Close());
+	ARROW_RETURN_NOT_OK(statement->Close(call_options));
 	return sql_client->Close();
 }
 // End query
