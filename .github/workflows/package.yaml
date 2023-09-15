@@ -54,12 +54,7 @@ jobs:
         if: |
           github.ref_type == 'tag'
         run: |
-          ruby \
-            -e 'print("## Apache Arrow Flight SQL adapter for PostgreSQL "); \
-                puts(ARGF.read.split(/^## Version /)[1]. \
-                       gsub(/ {.+?}/, ""). \
-                       gsub(/\[(.+?)\]\[.+?\]/) {$1})' \
-            doc/source/release-notes.md > release-note.md
+          rake release:note:latest > release-note.md
           rc=${GITHUB_REF_NAME#*-rc}
           title="$(head -n1 release-note.md | sed -e 's/^## //') RC${rc}"
           tail -n +2 release-note.md > release-note-without-version.md

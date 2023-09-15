@@ -175,10 +175,12 @@ it automatically by default. Don't forget to push it.
 
 Publish release blog post. The following command line generates the
 blog post outline, then fill out outline and create a PR on
-[`apache/arrow-site`](https://github.com/apache/arrow-site):
+[`apache/arrow-site`](https://github.com/apache/arrow-site). You need
+to close your `apache/arrow-site` fork and specify the path of it as
+`ARROW_SITE`:
 
 ```bash
-rake release:announce:blog PREVIOUS_VERSION=X.Y.Z
+rake release:announce:blog PREVIOUS_VERSION=X.Y.Z ARROW_SITE=/path/to/your/arrow-site/fork/repository
 ```
 
 Announce the new release on mailing lists. The following command line
@@ -196,15 +198,15 @@ Announce the new release on `pgsql-announce@postgresql.org`.
 You need to create your PostgreSQL community account:
 https://www.postgresql.org/account/
 
-You need to join the Apache Arrow organization on PostgreSQL community.
-TODO: Create it.
+You need to join the Apache Arrow organization on PostgreSQL
+community. Please contact one of the organization managers such as
+[@kou](https://github.com/kou) to join the organization.
 
-The following command line generates the announce e-mail outline, then
-fill out outline and submit it to
-https://www.postgresql.org/account/edit/news/ :
+The following command line generates the announce content. You can
+submit it to https://www.postgresql.org/account/edit/news/ .
 
 ```bash
-rake release:announce:postgresql
+rake release:announce:postgresql ARROW_SITE=/path/to/your/arrow-site/fork/repository
 ```
 
 Bump version:
