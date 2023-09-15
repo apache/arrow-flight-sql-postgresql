@@ -26,7 +26,14 @@ require_relative "helper"
 
 project_label = "Apache Arrow Flight SQL adapter for PostgreSQL"
 
-version = Helper.detect_version
+def version
+  Helper.detect_version
+end
+
+def version_in_path
+  version.gsub(".", "-")
+end
+
 archive_base_name = "apache-arrow-flight-sql-postgresql-#{version}"
 archive_name = "#{archive_base_name}.tar.gz"
 
@@ -151,6 +158,10 @@ end
 
 def arrow_source
   env_value("ARROW_SOURCE")
+end
+
+def arrow_site
+  env_value("ARROW_SITE")
 end
 
 def release_remote
@@ -309,11 +320,70 @@ def overview(remove_link: false, remove_markup: false)
   first_section.strip
 end
 
+def release_note(remove_internal_link: false)
+  # Extract the first "## ..." section.
+  first_section = File.read("doc/source/release-notes.md").split(/^## /)[1]
+  # Remove section title
+  first_section = first_section.lines[1..-1].join
+  if remove_internal_link
+    # [Apache Arrow Flight SQL][apache-arrow-flight-sql] ->
+    # Apache Arrow Flight SQL
+    first_section.gsub!(/\[(.+?)\]\[.+?\]/m, "\\1")
+  end
+  first_section.strip
+end
+
+def document_url
+  "https://arrow.apache.org/flight-sql-postgresql/#{version}/"
+end
+
+def overview_document_url
+  "#{document_url}overview.html"
+end
+
+def install_document_url
+  "#{document_url}install.html"
+end
+
+def release_note_url
+  "#{document_url}release-notes.html\#version-#{version_in_path}"
+end
+
+def github_url
+  "https://github.com/#{github_repository}"
+end
+
+def issues_url
+  "#{github_url}/issues"
+end
+
+def mailing_list_url
+  "https://arrow.apache.org/community/"
+end
+
+def release_blog_url
+  pattern = "#{arrow_site}/_posts/*-flight-sql-postgresql-#{version}-release.md"
+  release_post = Dir.glob(pattern)[0]
+  raise "No release blog post for #{version}: #{pattern}" if release_post.nil?
+  post_date = Date.parse(File.basename(release_post)[/\A\d+-\d+-\d+/])
+  path_date = post_date.strftime("%Y/%m/%d")
+  "https://arrow.apache.org/blog/#{path_date}/flight-sql-postgresql-#{version}-release/"
+end
+
 task :env do
   load_env
 end
 
 namespace :release do
+  namespace :note do
+    desc "Show the latest release note"
+    task :latest do
+      puts("## Apache Arrow Flight SQL adapter for PostgreSQL #{version}")
+      puts
+      puts(release_note(remove_internal_link: true))
+    end
+  end
+
   namespace :rc do
     desc "Prepare new release"
     task :prepare => :env do
@@ -573,7 +643,11 @@ Flight SQL adapter for PostgreSQL doesn't reach 1.0.0 yet.
       contributors = sh_capture_output(*contributor_command).rstrip
       n_contributors = contributors.lines.size
       post_date = env_value("POST_DATE", Date.today.strftime("%Y-%m-%d"))
-      puts(<<-POST)
+      post_path =
+        File.join(arrow_site,
+                  "_posts",
+                  "#{post_date}-flight-sql-postgresql-#{version}-release.md")
+      File.write(post_path, <<-POST)
 ---
 layout: post
 title: "Apache Arrow Flight SQL adapter for PostgreSQL #{version} Release"
@@ -639,17 +713,17 @@ be filed on [GitHub][issues], and questions can be directed to GitHub or
 [the Apache Arrow mailing lists][mailing-list].
 
 [commits]: https://github.com/apache/arrow-flight-sql-postgresql/compare/#{commit_range}
-[contributors]: #contributors
-[release-note]: https://arrow.apache.org/flight-sql-postgresql/#{version}/release-notes.html\#version-#{version.gsub(".", "-")}
-[install]: https://arrow.apache.org/flight-sql-postgresql/#{version}/install.html
-[issues]: https://github.com/apache/arrow-flight-sql-postgresql/issues
+[contributors]: \#contributors
+[release-note]: #{release_note_url}
+[install]: #{install_document_url}
+[issues]: #{issues_url}
 [mailing-list]: {% link community.md %}
       POST
+      puts("Edit #{post_path}, commit, push and open a PR.")
     end
 
     desc "Show mail announce template"
     task :mail => :env do
-      blog_path_date = Date.today.strftime("%Y/%m/%d")
       puts(<<-MAIL)
 To: announce@apache.org, user@arrow.apache.org, dev@arrow.apache.org
 Subject: [ANNOUNCE] Apache Arrow Flight SQL adapter for PostgreSQL #{version} released
@@ -659,13 +733,13 @@ The Apache Arrow team is pleased to announce the #{version} release of
 the Apache Arrow Flight SQL adapter for PostgreSQL.
 
 The release is available now from our website:
-  https://arrow.apache.org/flight-sql-postgresql/#{version}/install.html
+  #{install_document_url}
 
 Read about what's new in the release:
-  https://arrow.apache.org/blog/#{blog_path_date}/flight-sql-postgresql-#{version}-release/
+  #{release_blog_url}
 
 Release note:
-  https://arrow.apache.org/flight-sql-postgresql/#{version}/release-notes.html\#version-#{version.gsub(".", "-")}
+  #{release_note_url}
 
 
 What is Apache Arrow Flight SQL adapter for PostgreSQL?
@@ -674,8 +748,8 @@ What is Apache Arrow Flight SQL adapter for PostgreSQL?
 
 
 Please report any feedback to the GitHub issues or mailing lists:
-  * GitHub: https://github.com/apache/arrow-flight-sql-postgresql/issues
-  * ML: https://arrow.apache.org/community/
+  * GitHub: #{issues_url}
+  * ML: #{mailing_list_url}
 
 
 Thanks,
@@ -687,7 +761,43 @@ The Apache Arrow community
     desc "Show PostgreSQL announce template"
     task :postgresql => :env do
       puts(<<-ANNOUNCE)
-TODO
+Organization: Apache Arrow
+
+Reply email: Your email address
+
+Title: Apache Arrow Flight SQL adapter for PostgreSQL #{version}
+
+Content:
+
+The Apache Arrow team is pleased to announce the #{version} release of
+the Apache Arrow Flight SQL adapter for PostgreSQL.
+
+Read [the blog post of this release](#{release_blog_url}) about what's
+new in the release.
+
+## What is Apache Arrow Flight SQL adapter for PostgreSQL?
+
+#{overview}
+
+See also [the overview document](#{overview_document_url}).
+
+## Release note
+
+#{release_note}
+
+## Install
+
+See [the install document](#{install_document_url}) for details.
+
+## Community
+
+Please report any feedback to the GitHub issues or mailing lists:
+
+* [GitHub](#{issues_url})
+* [Mailing list](#{mailing_list_url})
+
+Tags:
+- Related Open Source
       ANNOUNCE
     end
   end
