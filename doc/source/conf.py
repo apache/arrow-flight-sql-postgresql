@@ -101,6 +101,6 @@ html_context = {
     'github_user': 'apache',
     'github_repo': 'arrow-flight-sql-postgresql',
     'github_version': 'main',
-    'doc_path': 'docs/source',
+    'doc_path': 'doc/source',
 }
 html_static_path = ['_static']
