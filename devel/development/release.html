@@ -466,8 +466,10 @@ the page.</p>
 it automatically by default. Don’t forget to push it.</p>
 <p>Publish release blog post. The following command line generates the
 blog post outline, then fill out outline and create a PR on
-<a class="reference external" href="https://github.com/apache/arrow-site"><code class="docutils literal notranslate"><span class="pre">apache/arrow-site</span></code></a>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rake<span class="w"> </span>release:announce:blog<span class="w"> </span><span class="nv">PREVIOUS_VERSION</span><span class="o">=</span>X.Y.Z
+<a class="reference external" href="https://github.com/apache/arrow-site"><code class="docutils literal notranslate"><span class="pre">apache/arrow-site</span></code></a>. You need
+to close your <code class="docutils literal notranslate"><span class="pre">apache/arrow-site</span></code> fork and specify the path of it as
+<code class="docutils literal notranslate"><span class="pre">ARROW_SITE</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rake<span class="w"> </span>release:announce:blog<span class="w"> </span><span class="nv">PREVIOUS_VERSION</span><span class="o">=</span>X.Y.Z<span class="w"> </span><span class="nv">ARROW_SITE</span><span class="o">=</span>/path/to/your/arrow-site/fork/repository
 </pre></div>
 </div>
 <p>Announce the new release on mailing lists. The following command line
@@ -481,12 +483,12 @@ address to send an e-mail to <code class="docutils literal notranslate"><span cl
 <p>Announce the new release on <code class="docutils literal notranslate"><span class="pre">pgsql-announce&#64;postgresql.org</span></code>.</p>
 <p>You need to create your PostgreSQL community account:
 <a class="reference external" href="https://www.postgresql.org/account/">https://www.postgresql.org/account/</a></p>
-<p>You need to join the Apache Arrow organization on PostgreSQL community.
-TODO: Create it.</p>
-<p>The following command line generates the announce e-mail outline, then
-fill out outline and submit it to
-<a class="reference external" href="https://www.postgresql.org/account/edit/news/">https://www.postgresql.org/account/edit/news/</a> :</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rake<span class="w"> </span>release:announce:postgresql
+<p>You need to join the Apache Arrow organization on PostgreSQL
+community. Please contact one of the organization managers such as
+<a class="reference external" href="https://github.com/kou">&#64;kou</a> to join the organization.</p>
+<p>The following command line generates the announce content. You can
+submit it to <a class="reference external" href="https://www.postgresql.org/account/edit/news/">https://www.postgresql.org/account/edit/news/</a> .</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rake<span class="w"> </span>release:announce:postgresql<span class="w"> </span><span class="nv">ARROW_SITE</span><span class="o">=</span>/path/to/your/arrow-site/fork/repository
 </pre></div>
 </div>
 <p>Bump version:</p>
