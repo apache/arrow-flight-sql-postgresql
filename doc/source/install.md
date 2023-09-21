@@ -67,7 +67,7 @@ Flight SQL adapter for PostgreSQL:
 - Apache Arrow C++ with Flight SQL support: https://arrow.apache.org/install/
 - Meson: https://mesonbuild.com/
 - Ninja: https://ninja-build.org/
-- C++ compiler such as `g++` and `clang++
+- C++ compiler such as `g++` and `clang++`
 
 Here are command lines to build Apache Arrow Flight SQL adapter for
 PostgreSQL:
