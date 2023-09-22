@@ -77,7 +77,8 @@ Replase `${version}` with {{ env.config.version }} or define `version` variable 
 ```
 
 ```bash
-wget "https://www.apache.org/dyn/closer.lua?action=download&filename=arrow/apache-arrow-flight-sql-postgresql-${version}/apache-arrow-flight-sql-postgresql-${version}.tar.gz"
+wget "https://www.apache.org/dyn/closer.lua?action=download&filename=arrow/apache-arrow-flight-sql-postgresql-${version}/apache-arrow-flight-sql-postgresql-${version}.tar.gz" \
+  --output-document=apache-arrow-flight-sql-postgresql-${version}.tar.gz
 tar xfv apache-arrow-flight-sql-postgresql-${version}.tar.gz
 meson setup \
   --prefix=/usr/local \

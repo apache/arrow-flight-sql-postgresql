@@ -402,7 +402,8 @@ PostgreSQL:</p>
 <p class="admonition-title">Note</p>
 <p>Replase <code class="docutils literal notranslate"><span class="pre">${version}</span></code> with 0.2.0 or define <code class="docutils literal notranslate"><span class="pre">version</span></code> variable with 0.2.0.</p>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span><span class="s2">&quot;https://www.apache.org/dyn/closer.lua?action=download&amp;filename=arrow/apache-arrow-flight-sql-postgresql-</span><span class="si">${</span><span class="nv">version</span><span class="si">}</span><span class="s2">/apache-arrow-flight-sql-postgresql-</span><span class="si">${</span><span class="nv">version</span><span class="si">}</span><span class="s2">.tar.gz&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span><span class="s2">&quot;https://www.apache.org/dyn/closer.lua?action=download&amp;filename=arrow/apache-arrow-flight-sql-postgresql-</span><span class="si">${</span><span class="nv">version</span><span class="si">}</span><span class="s2">/apache-arrow-flight-sql-postgresql-</span><span class="si">${</span><span class="nv">version</span><span class="si">}</span><span class="s2">.tar.gz&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output-document<span class="o">=</span>apache-arrow-flight-sql-postgresql-<span class="si">${</span><span class="nv">version</span><span class="si">}</span>.tar.gz
 tar<span class="w"> </span>xfv<span class="w"> </span>apache-arrow-flight-sql-postgresql-<span class="si">${</span><span class="nv">version</span><span class="si">}</span>.tar.gz
 meson<span class="w"> </span>setup<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--prefix<span class="o">=</span>/usr/local<span class="w"> </span><span class="se">\</span>
