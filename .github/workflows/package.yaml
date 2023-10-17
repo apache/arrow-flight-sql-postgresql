@@ -78,6 +78,8 @@ jobs:
         target:
           - "debian-bookworm-amd64-postgresql-15-pgdg"
           - "ubuntu-jammy-amd64-postgresql-15-pgdg"
+          - "debian-bookworm-amd64-postgresql-16-pgdg"
+          - "ubuntu-jammy-amd64-postgresql-16-pgdg"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -96,6 +98,11 @@ jobs:
           # postgresql-15-pgdg
           PACKAGE=postgresql-${full_target#*-postgresql-}
           echo "PACKAGE=${PACKAGE}" >> $GITHUB_ENV
+          # debian-bookworm-amd64-postgresql-15-pgdg ->
+          # 15 ->
+          POSTGRESQL_VERSION=${full_target#*-postgresql-}
+          POSTGRESQL_VERSION=${POSTGRESQL_VERSION%-pgdg}
+          echo "POSTGRESQL_VERSION=${POSTGRESQL_VERSION}" >> $GITHUB_ENV
           # debian-bookworm-amd64-postgresql-15-pgdg ->
           # debian-bookworm-amd64
           PACKAGE_TARGET=${full_target%-postgresql-*}
@@ -179,6 +186,7 @@ jobs:
             ${ARCHITECTURE}/${DISTRIBUTION}:${DISTRIBUTION_VERSION} \
             /host/package/${TASK_NAMESPACE}/test.sh \
             ${VERSION} \
+            ${POSTGRESQL_VERSION} \
             local \
             package/${PACKAGE}/${TASK_NAMESPACE}/repositories
           popd

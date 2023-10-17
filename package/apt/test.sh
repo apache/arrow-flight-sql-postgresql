@@ -19,25 +19,26 @@
 
 set -eux
 
-if [ $# -lt 2 ]; then
-  echo "Usage: $0 VERSION rc"
-  echo "       $0 VERSION staging-rc"
-  echo "       $0 VERSION release"
-  echo "       $0 VERSION staging-release"
-  echo "       $0 VERSION local RELATIVE_REPOSITORIES_DIR"
-  echo " e.g.: $0 1.0.0 rc                # Verify 1.0.0 RC"
-  echo " e.g.: $0 1.0.0 staging-rc        # Verify 1.0.0 RC on staging"
-  echo " e.g.: $0 1.0.0 release           # Verify 1.0.0"
-  echo " e.g.: $0 1.0.0 staging-release   # Verify 1.0.0 on staging"
-  echo " e.g.: $0 1.0.0 local package/postgresql-15-pgdg/apt/repositories"
+if [ $# -lt 3 ]; then
+  echo "Usage: $0 VERSION POSTGRESQL_VESRION rc"
+  echo "       $0 VERSION POSTGRESQL_VESRION staging-rc"
+  echo "       $0 VERSION POSTGRESQL_VESRION release"
+  echo "       $0 VERSION POSTGRESQL_VESRION staging-release"
+  echo "       $0 VERSION POSTGRESQL_VESRION local RELATIVE_REPOSITORIES_DIR"
+  echo " e.g.: $0 1.0.0 15 rc              # Verify 1.0.0 RC with PostgreSQL 15"
+  echo " e.g.: $0 1.0.0 15 staging-rc      # Verify 1.0.0 RC with PostgreSQL 15 on staging"
+  echo " e.g.: $0 1.0.0 15 release         # Verify 1.0.0 with PostgreSQL 15"
+  echo " e.g.: $0 1.0.0 15 staging-release # Verify 1.0.0 with PostgreSQL 15 on staging"
+  echo " e.g.: $0 1.0.0 15 local package/postgresql-15-pgdg/apt/repositories"
   echo "       # Verify 1.0.0 on local"
   exit 1
 fi
 
 VERSION="$1"
-TYPE="$2"
+POSTGRESQL_VERSION="$2"
+TYPE="$3"
 if [ "${TYPE}" = "local" ]; then
-  RELATIVE_REPOSITORIES_DIR="$3"
+  RELATIVE_REPOSITORIES_DIR="$4"
   REPOSITORIES_DIR=/host/${RELATIVE_REPOSITORIES_DIR}
 fi
 
@@ -110,13 +111,13 @@ echo "::group::Install built packages"
 
 ${APT_UPDATE}
 
-package=postgresql-15-pgdg-apache-arrow-flight-sql
+package=postgresql-${POSTGRESQL_VERSION}-pgdg-apache-arrow-flight-sql
 package_version=${VERSION}-1
 if [ "${TYPE}" = "local" ]; then
   ${APT_INSTALL} \
     ${REPOSITORIES_DIR}/${distribution}/pool/${code_name}/*/*/*/${package}_${package_version}_${architecture}.deb
 else
-  ${APT_INSTALL} postgresql-15-pgdg-apache-arrow-flight-sql=${package_version}
+  ${APT_INSTALL} postgresql-${POSTGRESQL_VERSION}-pgdg-apache-arrow-flight-sql=${package_version}
 fi
 
 echo "::endgroup::"
