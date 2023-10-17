@@ -47,13 +47,24 @@ base_directory="$(cd "$(dirname "$0")" && pwd)"
 
 rm -rf "${data_directory}"
 
-initdb \
-  --locale=C \
-  --set=arrow_flight_sql.uri=${scheme}://${server_name}:15432 \
-  --set=shared_preload_libraries=arrow_flight_sql \
-  --set=ssl=${ssl} \
-  --set=ssl_ca_file=${ssl_ca_file} \
-  "${data_directory}"
+if LANG=C initdb --help | grep -q -- --set; then
+  initdb \
+    --locale=C \
+    --set=arrow_flight_sql.uri=${scheme}://${server_name}:15432 \
+    --set=shared_preload_libraries=arrow_flight_sql \
+    --set=ssl=${ssl} \
+    --set=ssl_ca_file=${ssl_ca_file} \
+    "${data_directory}"
+else
+  initdb \
+    --locale=C \
+    "${data_directory}"
+  (echo "arrow_flight_sql.uri = '${scheme}://${server_name}:15432'"; \
+   echo "shared_preload_libraries = 'arrow_flight_sql'"; \
+   echo "ssl = ${ssl}"; \
+   echo "ssl_ca_file = '${ssl_ca_file}'") | \
+    tee -a "${data_directory}/postgresql.conf"
+fi
 if [ "${ssl}" = "on" ]; then
   pushd "${data_directory}"
   "${base_directory}/prepare-tls.sh" \
