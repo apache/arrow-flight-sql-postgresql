@@ -36,6 +36,7 @@ RUN \
   apt update ${quiet} && \
   apt install -y -V ${quiet} \
     ca-certificates \
+    gpg \
     lsb-release \
     wget && \
   distribution=$(lsb_release --id --short | tr 'A-Z' 'a-z') && \
@@ -44,10 +45,14 @@ RUN \
   apt install -y -V ${quiet} \
     ./apache-arrow-apt-source-latest-${code_name}.deb && \
   rm apache-arrow-apt-source-latest-${code_name}.deb && \
-  echo "deb http://apt.postgresql.org/pub/repos/apt/ ${code_name}-pgdg main" > \
-    /etc/apt/sources.list.d/pgdg.list && \
-  wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
-    apt-key add - && \
+  wget -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
+    gpg --no-default-keyring --keyring /usr/share/keyrings/pgdg.gpg --import - && \
+  (echo "Types: deb"; \
+   echo "URIs: http://apt.postgresql.org/pub/repos/apt"; \
+   echo "Suites: ${code_name}-pgdg"; \
+   echo "Components: main"; \
+   echo "Signed-By: /usr/share/keyrings/pgdg.gpg") | \
+    tee /etc/apt/sources.list.d/pgdg.sources && \
   apt update && \
   apt install -y -V ${quiet} \
     build-essential \

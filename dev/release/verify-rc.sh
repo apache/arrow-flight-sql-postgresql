@@ -251,20 +251,23 @@ test_apt() {
     if [ "${TEST_STAGING:-0}" -gt 0 ]; then
       verify_type=staging-${verify_type}
     fi
-    for target in "debian:bookworm" \
-                  "ubuntu:jammy"; do \
-      show_info "Verifying ${target}..."
-      if ! docker run \
-           --rm \
-           --security-opt="seccomp=unconfined" \
-           --volume "${PWD}":/host:delegated \
-           "${target}" \
-           /host/package/apt/test.sh \
-           "${VERSION}" \
-           "${verify_type}"; then
-        echo "Failed to verify the APT repository for ${target}"
-        exit 1
-      fi
+    for postgresql_vesrion in 15 16; do
+      for target in "debian:bookworm" \
+                    "ubuntu:jammy"; do
+        show_info "Verifying ${target} with PostgreSQL ${postgresql_version}..."
+        if ! docker run \
+             --rm \
+             --security-opt="seccomp=unconfined" \
+             --volume "${PWD}":/host:delegated \
+             "${target}" \
+             /host/package/apt/test.sh \
+             "${VERSION}" \
+             "${postgresql_vesrion}" \
+             "${verify_type}"; then
+          echo "Failed to verify the APT repository for ${target} with PostgreSQL ${postgresql_vesrion}"
+          exit 1
+        fi
+      done
     done
     popd
   else
