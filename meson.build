@@ -69,12 +69,17 @@ postgresql = declare_dependency(
   ]
 )
 install_dir = run_command(pg_config, '--pkglibdir', check: true).stdout().strip()
+name_suffix = 'so'
+if host_machine.system() == 'darwin' and \
+   pg_config.version().version_compare('>= 16')
+  name_suffix = 'dylib'
+endif
 afs = shared_module(
   'arrow_flight_sql',
   'src/afs.cc',
   dependencies: [arrow_flight_sql, postgresql],
   name_prefix: '',
-  name_suffix: 'so',
+  name_suffix: name_suffix,
   install: true,
   install_dir: install_dir,
 )
@@ -82,7 +87,7 @@ afs = shared_module(
 install_data(
   'LICENSE.txt',
   'NOTICE.txt',
-  # 'README.md',
+  'README.md',
   install_dir: project_doc_dir
 )
 

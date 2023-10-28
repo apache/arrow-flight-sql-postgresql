@@ -26,5 +26,5 @@ sed \
   -e "s/postgresql@[0-9]*/postgresql@${postgresql_version}/g" \
   Brewfile
 brew update
-brew bundle
+brew bundle --verbose
 echo "$(brew --prefix postgresql@${postgresql_version})/bin" >> "${GITHUB_PATH}"

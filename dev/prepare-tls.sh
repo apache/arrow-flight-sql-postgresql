@@ -29,6 +29,13 @@ root_name=$1
 server_name=$2
 client_name=$3
 
+if [ "$(uname)" = "Darwin" ]; then
+  PATH="$(brew --prefix openssl@3)/bin:${PATH}"
+  extfile="$(brew --prefix)/etc/openssl@3/openssl.cnf"
+else
+  extfile=/etc/ssl/openssl.cnf
+fi
+
 openssl req \
         -addext "subjectAltName = DNS:${root_name}" \
         -keyout root.key \
@@ -43,7 +50,7 @@ openssl x509 \
         -copy_extensions copy \
         -days 3650 \
         -extensions v3_ca \
-        -extfile /etc/ssl/openssl.cnf \
+        -extfile ${extfile} \
         -in root.csr \
         -out root.crt \
         -req \

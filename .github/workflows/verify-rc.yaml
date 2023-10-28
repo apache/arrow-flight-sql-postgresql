@@ -40,6 +40,7 @@ jobs:
           - ubuntu
         postgresql-version:
           - "15"
+          - "16"
     steps:
       - uses: actions/checkout@v4
       - name: Prepare
