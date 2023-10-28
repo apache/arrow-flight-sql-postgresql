@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env python3
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -17,22 +17,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-require "time"
+import time
 
-require "arrow-flight-sql"
+import pandas
+import sqlalchemy
 
-call_options = ArrowFlight::CallOptions.new
-call_options.add_header("x-flight-sql-database", "afs_benchmark")
-client = ArrowFlight::Client.new("grpc://127.0.0.1:15432")
-client.authenticate_basic(ENV["PGUSER"] || ENV["USER"],
-                          ENV["PGPASSWORD"] || "",
-                          call_options)
-sql_client = ArrowFlightSQL::Client.new(client)
-
-before = Time.now
-info = sql_client.execute("SELECT * FROM data", call_options)
-endpoint = info.endpoints.first
-reader = sql_client.do_get(endpoint.ticket, call_options)
-_table = reader.read_all
-# p _table
-puts("%.3fsec" % (Time.now - before))
+database = os.environ.get("PGDATABASE", "afs_benchmark")
+engine = sqlalchemy.create_engine("postgresql:///{database}")
+with engine.connect() as connection, connection.begin():
+    start = time.perf_counter()
+    pandas.read_sql_table("data", connection)
+    print(time.perf_counter() - start)

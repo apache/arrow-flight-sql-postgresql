@@ -24,14 +24,63 @@
 
 #include <libpq-fe.h>
 
+#include <catalog/pg_type_d.h>
+
+#define UNUSED(x) ((void)(x))
+
+static bool
+parse_value(PGresult* result, int iTuple, int iField)
+{
+	Oid type = PQftype(result, iField);
+	char* value = PQgetvalue(result, iTuple, iField);
+	int length = PQgetlength(result, iTuple, iField);
+	switch (type)
+	{
+		case INT4OID:
+		{
+			char* end;
+			long integer = strtol(value, &end, 10);
+			if (end != value + length)
+			{
+				fprintf(stderr, "failed to parse integer value: <%s>\n", value);
+				return false;
+			}
+			UNUSED(integer);
+			/* printf("%ld\n", integer); */
+		}
+		break;
+		case TEXTOID:
+		{
+			/* printf("%s\n", value); */
+		}
+		break;
+		default:
+			fprintf(stderr, "Unsupported type: %u\n", type);
+			return false;
+	}
+	return true;
+}
+
 int
 main(int argc, char** argv)
 {
-	PGconn* connection = PQconnectdb("dbname=afs_benchmark");
+	PGconn* connection;
 	PGresult* result;
 	struct timeval before;
 	struct timeval after;
+	int nFields;
+	int iField;
+	int nTuples;
+	int iTuple;
 
+	if (getenv("PGDATABASE"))
+	{
+		connection = PQconnectdb("");
+	}
+	else
+	{
+		connection = PQconnectdb("dbname=afs_benchmark");
+	}
 	if (PQstatus(connection) != CONNECTION_OK)
 	{
 		fprintf(stderr, "failed to connect: %s\n", PQerrorMessage(connection));
@@ -40,38 +89,39 @@ main(int argc, char** argv)
 	}
 
 	gettimeofday(&before, NULL);
-	result = PQexec(connection, "COPY data TO STDOUT (FORMAT binary)");
-	if (PQresultStatus(result) != PGRES_COPY_OUT)
+	result = PQexec(connection, "SELECT * FROM data");
+	if (PQresultStatus(result) != PGRES_TUPLES_OK)
 	{
-		fprintf(stderr, "failed to copy: %s\n", PQerrorMessage(connection));
+		fprintf(stderr, "failed to select: %s\n", PQerrorMessage(connection));
 		PQclear(result);
 		PQfinish(connection);
 		return EXIT_FAILURE;
 	}
 
-	while (true)
+	nTuples = PQntuples(result);
+	nFields = PQnfields(result);
+	for (iTuple = 0; iTuple < nTuples; iTuple++)
 	{
-		char* buffer;
-		int size = PQgetCopyData(connection, &buffer, 0);
-		if (size == -1)
+		for (iField = 0; iField < nFields; iField++)
 		{
-			break;
+			if (PQgetisnull(result, iTuple, iField))
+			{
+				continue;
+			}
+			if (!parse_value(result, iTuple, iField))
+			{
+				PQclear(result);
+				PQfinish(connection);
+				return EXIT_FAILURE;
+			}
 		}
-		if (size == -2)
-		{
-			fprintf(stderr, "failed to read copy data: %s\n", PQerrorMessage(connection));
-			PQclear(result);
-			PQfinish(connection);
-			return EXIT_FAILURE;
-		}
-		/* printf("%.*s\n", size, buffer); */
-		free(buffer);
 	}
 	gettimeofday(&after, NULL);
-	printf("%.3fsec\n",
+	printf("%.3f\n",
 	       (after.tv_sec + (after.tv_usec / 1000000.0)) -
 	           (before.tv_sec + (before.tv_usec / 1000000.0)));
 	PQclear(result);
+	PQfinish(connection);
 
 	return EXIT_SUCCESS;
 }

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,10 +17,19 @@
 # specific language governing permissions and limitations
 # under the License.
 
-benchmark/*/result.csv
-benchmark/*/result.svg
-compile_commands.json
-dev/release/apache-rat-*.jar
-dev/release/filtered_rat.txt
-dev/release/rat.xml
-doc/source/_static/switcher.json
+import os
+import time
+
+import polars
+
+user = os.environ.get("PGUSER", os.environ["USER"])
+password = os.environ.get("PGPASSWORD", "")
+host = os.environ.get("PGHOST", "localhost")
+port = os.environ.get("PGPORT", "5432")
+database = os.environ.get("PGDATABASE", "afs_benchmark")
+uri = f"postgres://{user}:{password}@{host}:{port}/{database}"
+start = time.perf_counter()
+polars.read_database_uri(query="SELECT * FROM data",
+                         uri=uri)
+print(time.perf_counter() - start)
+

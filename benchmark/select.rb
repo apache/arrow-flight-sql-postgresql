@@ -17,15 +17,23 @@
 # specific language governing permissions and limitations
 # under the License.
 
-require "csv"
-require "charty"
+require "time"
 
-Charty::Backends.use("pyplot")
-data = CSV.read(File.join(__dir__, "result.csv"),
-                headers: true,
-                converters: :all)
-plotter = Charty.bar_plot(data: data,
-                          x: "N records",
-                          y: "Elapsed time (sec)",
-                          color: "Approach")
-plotter.save("result.svg")
+require "arrow-flight-sql"
+
+call_options = ArrowFlight::CallOptions.new
+call_options.add_header("x-flight-sql-database",
+                        ENV["PGDATABASE"] || "afs_benchmark")
+client = ArrowFlight::Client.new("grpc://127.0.0.1:15432")
+client.authenticate_basic(ENV["PGUSER"] || ENV["USER"],
+                          ENV["PGPASSWORD"] || "",
+                          call_options)
+sql_client = ArrowFlightSQL::Client.new(client)
+
+before = Time.now
+info = sql_client.execute("SELECT * FROM data", call_options)
+endpoint = info.endpoints.first
+reader = sql_client.do_get(endpoint.ticket, call_options)
+_table = reader.read_all
+# p _table
+puts("%.3f" % (Time.now - before))
