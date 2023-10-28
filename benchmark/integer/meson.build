@@ -16,4 +16,5 @@
 # under the License.
 
 libpq = dependency('libpq')
+executable('copy', 'copy.c', dependencies: [libpq])
 executable('select', 'select.c', dependencies: [libpq])

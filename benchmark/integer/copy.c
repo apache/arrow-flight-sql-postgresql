@@ -17,6 +17,7 @@
  * under the License.
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -30,10 +31,6 @@ main(int argc, char** argv)
 	PGresult* result;
 	struct timeval before;
 	struct timeval after;
-	int nFields;
-	int iField;
-	int nTuples;
-	int iTuple;
 
 	if (PQstatus(connection) != CONNECTION_OK)
 	{
@@ -43,23 +40,32 @@ main(int argc, char** argv)
 	}
 
 	gettimeofday(&before, NULL);
-	result = PQexec(connection, "SELECT * FROM data");
-	if (PQresultStatus(result) != PGRES_TUPLES_OK)
+	result = PQexec(connection, "COPY data TO STDOUT (FORMAT binary)");
+	if (PQresultStatus(result) != PGRES_COPY_OUT)
 	{
-		fprintf(stderr, "failed to select: %s\n", PQerrorMessage(connection));
+		fprintf(stderr, "failed to copy: %s\n", PQerrorMessage(connection));
 		PQclear(result);
 		PQfinish(connection);
 		return EXIT_FAILURE;
 	}
 
-	nTuples = PQntuples(result);
-	nFields = PQnfields(result);
-	for (iTuple = 0; iTuple < nTuples; iTuple++)
+	while (true)
 	{
-		for (iField = 0; iField < nFields; iField++)
+		char* buffer;
+		int size = PQgetCopyData(connection, &buffer, 0);
+		if (size == -1)
 		{
-			PQgetvalue(result, iTuple, iField);
+			break;
 		}
+		if (size == -2)
+		{
+			fprintf(stderr, "failed to read copy data: %s\n", PQerrorMessage(connection));
+			PQclear(result);
+			PQfinish(connection);
+			return EXIT_FAILURE;
+		}
+		/* printf("%.*s\n", size, buffer); */
+		free(buffer);
 	}
 	gettimeofday(&after, NULL);
 	printf("%.3fsec\n",
