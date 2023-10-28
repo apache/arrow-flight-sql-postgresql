@@ -1032,15 +1032,16 @@ class ArrowArrayBuilder<ArrowType, arrow::enable_if_has_c_type<ArrowType>>
 
 	arrow::Status build_not_null(uint64_t iTuple, uint64_t iTupleEnd)
 	{
-		values_.resize(iTupleEnd - iTuple);
-		for (; iTuple < iTupleEnd; iTuple++)
+		uint64_t n = iTupleEnd - iTuple;
+		values_.resize(n);
+		for (uint64_t i = 0; i < n; ++i)
 		{
 			bool isNull;
-			auto datum = SPI_getbinval(SPI_tuptable->vals[iTuple],
+			auto datum = SPI_getbinval(SPI_tuptable->vals[iTuple + i],
 			                           SPI_tuptable->tupdesc,
 			                           iAttribute_ + 1,
 			                           &isNull);
-			values_[iTuple] = convert_value<ArrowType>(datum);
+			values_[i] = convert_value<ArrowType>(datum);
 		}
 		return builder_->AppendValues(values_.data(), values_.size());
 	}
@@ -1048,24 +1049,25 @@ class ArrowArrayBuilder<ArrowType, arrow::enable_if_has_c_type<ArrowType>>
 	arrow::Status build_may_null(uint64_t iTuple, uint64_t iTupleEnd)
 	{
 		bool haveNull = false;
-		values_.resize(iTupleEnd - iTuple);
-		validBytes_.resize(iTupleEnd - iTuple);
-		for (; iTuple < iTupleEnd; iTuple++)
+		uint64_t n = iTupleEnd - iTuple;
+		values_.resize(n);
+		validBytes_.resize(n);
+		for (uint64_t i = 0; i < n; ++i)
 		{
 			bool isNull;
-			auto datum = SPI_getbinval(SPI_tuptable->vals[iTuple],
+			auto datum = SPI_getbinval(SPI_tuptable->vals[iTuple + i],
 			                           SPI_tuptable->tupdesc,
 			                           iAttribute_ + 1,
 			                           &isNull);
 			if (isNull)
 			{
 				haveNull = true;
-				validBytes_[iTuple] = 0;
+				validBytes_[i] = 0;
 			}
 			else
 			{
-				validBytes_[iTuple] = 1;
-				values_[iTuple] = convert_value<ArrowType>(datum);
+				validBytes_[i] = 1;
+				values_[i] = convert_value<ArrowType>(datum);
 			}
 		}
 		if (haveNull)
@@ -1148,15 +1150,16 @@ class ArrowArrayBuilder<ArrowType, arrow::enable_if_base_binary<ArrowType>>
 
 	arrow::Status build_not_null(uint64_t iTuple, uint64_t iTupleEnd)
 	{
-		values_.resize(iTupleEnd - iTuple);
-		for (; iTuple < iTupleEnd; iTuple++)
+		uint64_t n = iTupleEnd - iTuple;
+		values_.resize(n);
+		for (uint64_t i = 0; i < n; ++i)
 		{
 			bool isNull;
-			auto datum = SPI_getbinval(SPI_tuptable->vals[iTuple],
+			auto datum = SPI_getbinval(SPI_tuptable->vals[iTuple + i],
 			                           SPI_tuptable->tupdesc,
 			                           iAttribute_ + 1,
 			                           &isNull);
-			values_[iTuple] = std::string(VARDATA_ANY(datum), VARSIZE_ANY_EXHDR(datum));
+			values_[i] = std::string(VARDATA_ANY(datum), VARSIZE_ANY_EXHDR(datum));
 		}
 		return builder_->AppendValues(values_);
 	}
@@ -1164,25 +1167,25 @@ class ArrowArrayBuilder<ArrowType, arrow::enable_if_base_binary<ArrowType>>
 	arrow::Status build_may_null(uint64_t iTuple, uint64_t iTupleEnd)
 	{
 		bool haveNull = false;
-		values_.resize(iTupleEnd - iTuple);
-		validBytes_.resize(iTupleEnd - iTuple);
-		for (; iTuple < iTupleEnd; iTuple++)
+		uint64_t n = iTupleEnd - iTuple;
+		values_.resize(n);
+		validBytes_.resize(n);
+		for (uint64_t i = 0; i < n; ++i)
 		{
 			bool isNull;
-			auto datum = SPI_getbinval(SPI_tuptable->vals[iTuple],
+			auto datum = SPI_getbinval(SPI_tuptable->vals[iTuple + i],
 			                           SPI_tuptable->tupdesc,
 			                           iAttribute_ + 1,
 			                           &isNull);
 			if (isNull)
 			{
 				haveNull = true;
-				validBytes_[iTuple] = 0;
+				validBytes_[i] = 0;
 			}
 			else
 			{
-				validBytes_[iTuple] = 1;
-				values_[iTuple] =
-					std::string(VARDATA_ANY(datum), VARSIZE_ANY_EXHDR(datum));
+				validBytes_[i] = 1;
+				values_[i] = std::string(VARDATA_ANY(datum), VARSIZE_ANY_EXHDR(datum));
 			}
 		}
 		if (haveNull)

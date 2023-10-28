@@ -18,6 +18,10 @@
 class FlightSQLTest < Test::Unit::TestCase
   include Helper::Sandbox
 
+  def max_n_rows_per_record_batch
+    10
+  end
+
   setup do
     unless flight_client.respond_to?(:authenticate_basic)
       omit("ArrowFlight::Client#authenticate_basic is needed" )
@@ -120,6 +124,41 @@ class FlightSQLTest < Test::Unit::TestCase
     endpoint = info.endpoints.first
     reader = flight_sql_client.do_get(endpoint.ticket, @options)
     assert_equal(Arrow::Table.new(value: Arrow::Int32Array.new([1, -2, 3])),
+                 reader.read_all)
+  end
+
+  data(:type, ["integer", "text"])
+  data(:may_null, [true, false])
+  def test_select_multiple_record_batches_response
+    type = data[:type]
+    may_null = data[:may_null]
+    if type == "integer"
+      arrow_type = Arrow::Int32DataType.new
+      values = 30.times.to_a
+    else
+      arrow_type = Arrow::StringDataType.new
+      values = 30.times.collect(&:to_s)
+    end
+
+    create_table = "CREATE TABLE data (value #{type}"
+    # XXX: "NOT NULL" doesn't change FormData_pg_attribute::attnotnull
+    # returned by "SELECT *". So the "may_null" data driven test
+    # parameter is meaningless...
+    create_table << " NOT NULL" unless may_null
+    create_table << ")"
+    run_sql(create_table)
+    run_sql("INSERT INTO data VALUES " +
+            values.collect {|value| "(#{value})"}.join(", "))
+
+    info = flight_sql_client.execute("SELECT * FROM data", @options)
+    assert_equal(Arrow::Schema.new(value: arrow_type),
+                 info.get_schema)
+    endpoint = info.endpoints.first
+    reader = flight_sql_client.do_get(endpoint.ticket, @options)
+    chunks = values.each_slice(max_n_rows_per_record_batch).collect do |chunk|
+      arrow_type.array_class.new(chunk)
+    end
+    assert_equal(Arrow::Table.new(value: Arrow::ChunkedArray.new(chunks)),
                  reader.read_all)
   end
 

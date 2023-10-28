@@ -123,6 +123,7 @@ module Helper
     end
 
     def initdb(shared_preload_libraries: [],
+               max_n_rows_per_record_batch: nil,
                db_path: "db",
                port: 25432,
                flight_sql_port: 35432)
@@ -163,6 +164,10 @@ module Helper
         conf.puts("shared_preload_libraries = " +
                   "'#{shared_preload_libraries.join(",")}'")
         conf.puts("arrow_flight_sql.uri = '#{@flight_sql_uri}'")
+        if max_n_rows_per_record_batch
+          conf.puts("arrow_flight_sql.max_n_rows_per_record_batch = " +
+                    "#{max_n_rows_per_record_batch}")
+        end
         yield(conf) if block_given?
       end
       pg_hba_conf = File.join(@dir, "pg_hba.conf")
@@ -343,6 +348,7 @@ module Helper
       @postgresql = PostgreSQL.new(@tmp_dir)
       options = {
         shared_preload_libraries: shared_preload_libraries,
+        max_n_rows_per_record_batch: max_n_rows_per_record_batch,
       }
       @postgresql.initdb(**options)
       yield
@@ -350,6 +356,10 @@ module Helper
 
     def shared_preload_libraries
       ["arrow_flight_sql"]
+    end
+
+    def max_n_rows_per_record_batch
+      nil
     end
 
     def start_postgres
