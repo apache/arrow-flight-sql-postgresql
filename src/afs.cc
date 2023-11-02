@@ -77,6 +77,7 @@ extern "C"
 #	define AFS_FUNC __func__
 #endif
 
+// #define AFS_DEBUG
 #ifdef AFS_DEBUG
 #	define P(...) ereport(DEBUG5, errmsg_internal(__VA_ARGS__))
 #else

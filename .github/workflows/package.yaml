@@ -124,6 +124,26 @@ jobs:
           ARCHITECTURE=${PACKAGE_TARGET##*-}
           echo "ARCHITECTURE=${ARCHITECTURE}" >> $GITHUB_ENV
 
+          case ${PACKAGE_TARGET} in
+            debian-bookworm-*)
+              DOCKER_IMAGE_BUILD=yes
+              DOCKER_TAG_PREFIX="ghcr.io/${GITHUB_REPOSITORY}:"
+              DOCKER_TAG_SUFFIX="-bookworm-${POSTGRESQL_VERSION}"
+              DOCKER_TAGS="${DOCKER_VERSION}"
+              if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+                DOCKER_TAGS="${DOCKER_TAG_PREFIX}${GITHUB_REF_NAME}${DOCKER_TAG_SUFFIX}"
+                DOCKER_TAGS+=",${DOCKER_TAG_PREFIX}latest${DOCKER_TAG_SUFFIX}"
+              else
+                DOCKER_TAGS="${DOCKER_TAG_PREFIX}main${DOCKER_TAG_SUFFIX}"
+              fi
+              echo "DOCKER_TAGS=${DOCKER_TAGS}" >> $GITHUB_ENV
+              ;;
+            *)
+              DOCKER_IMAGE_BUILD=no
+              ;;
+          esac
+          echo "DOCKER_IMAGE_BUILD=${DOCKER_IMAGE_BUILD}" >> $GITHUB_ENV
+
           source_archive=$(echo ${BASE_NAME}-*.tar.gz)
           VERSION=${source_archive#${BASE_NAME}-}
           VERSION=${VERSION%.tar.gz}
@@ -172,10 +192,13 @@ jobs:
             ${{ matrix.target }}.tar.gz
         env:
           GH_TOKEN: ${{ github.token }}
-      - name: Push Docker image
+      - name: Push Docker image for building packages
         run: |
           pushd ${BASE_NAME}/package/${PACKAGE}
           rake docker:push || :
+          cp \
+            ${TASK_NAMESPACE}/repositories/*/pool/*/*/*/*/*.deb \
+            ../docker/
           popd
       - name: Test
         run: |
@@ -190,3 +213,17 @@ jobs:
             local \
             package/${PACKAGE}/${TASK_NAMESPACE}/repositories
           popd
+      - uses: docker/setup-qemu-action@v3
+        if: env.DOCKER_IMAGE_BUILD == 'yes'
+      - uses: docker/setup-buildx-action@v3
+        if: env.DOCKER_IMAGE_BUILD == 'yes'
+        id: buildx
+      - uses: docker/build-push-action@v5
+        if: env.DOCKER_IMAGE_BUILD == 'yes'
+        id: build-push
+        with:
+          context: ${{ env.BASE_NAME }}
+          file: ${{ env.BASE_NAME }}/package/${{ env.PACKAGE }}/Dockerfile
+          platforms: linux/${{ env.ARCHITECTURE }}
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ env.DOCKER_TAGS }}

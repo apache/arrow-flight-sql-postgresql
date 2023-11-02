@@ -161,6 +161,7 @@ module Helper
         end
         conf.puts("logging_collector = on")
         conf.puts("log_filename = '#{@log_base_name}'")
+        conf.puts("log_min_messages = debug5") if ENV["AFS_DEBUG"] == "yes"
         conf.puts("shared_preload_libraries = " +
                   "'#{shared_preload_libraries.join(",")}'")
         conf.puts("arrow_flight_sql.uri = '#{@flight_sql_uri}'")
@@ -375,7 +376,10 @@ module Helper
       begin
         yield
       ensure
-        stop_postgres if @postgresql
+        if @postgresql
+          stop_postgres
+          puts(@postgresql.read_log) unless passed?
+        end
       end
     end
 
