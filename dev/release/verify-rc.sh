@@ -202,6 +202,7 @@ test_source_distribution() {
     fi
   fi
 
+  rm -rf build
   meson setup \
         --prefix="${ARROW_TMPDIR}/install" \
         -Dpostgresql_dir="$(pg_config --bindir)/.." \

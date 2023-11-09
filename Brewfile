@@ -16,7 +16,8 @@
 # under the License.
 
 brew "apache-arrow-glib"
+brew "gobject-introspection"
 brew "libpq"
 brew "meson"
-brew "gobject-introspection"
+brew "openssl@3"
 brew "postgresql@15"

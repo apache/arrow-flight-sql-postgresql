@@ -32,7 +32,7 @@ jobs:
   test:
     name: ${{ matrix.os }} - PostgreSQL ${{ matrix.postgresql-version }}
     runs-on: ${{ matrix.os }}-latest
-    timeout-minutes: 15
+    timeout-minutes: ${{ matrix.os == 'macos' && 30 || 15 }}
     strategy:
       fail-fast: false
       matrix:
@@ -41,6 +41,7 @@ jobs:
           - ubuntu
         postgresql-version:
           - "15"
+          - "16"
     steps:
       - uses: actions/checkout@v4
       - name: Prepare
