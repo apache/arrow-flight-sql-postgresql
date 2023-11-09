@@ -15,19 +15,22 @@
 # specific language governing permissions and limitations
 # under the License.
 
-/*.tar.gz
-/.cache/
-/Gemfile.lock
-/compile_commands.json
-/dev/release/.env
-/dev/release/apache-rat-0.13.jar
-/dev/release/dist
-/dev/release/filtered_rat.txt
-/dev/release/rat.xml
-/doc/build/
-/package/*/*.tar.gz
-/package/*/apt/build.sh
-/package/*/apt/env.sh
-/package/*/apt/repositories/
-/package/*/apt/tmp/
-/package/docker/*.deb
+FROM postgres:16-bookworm
+
+COPY package/docker/postgresql-16-pgdg-apache-arrow-flight-sql_*_amd64.deb ./
+RUN \
+  apt update && \
+  apt install -y -V lsb-release wget && \
+  wget https://apache.jfrog.io/artifactory/arrow/debian/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb && \
+  apt install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb && \
+  rm apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb && \
+  apt update && \
+  apt install -y -V \
+    ./postgresql-16-pgdg-apache-arrow-flight-sql_*.deb && \
+  rm -f postgresql-16-pgdg-apache-arrow-flight-sql_*.deb && \
+  apt clean && \
+  rm -rf /var/lib/apt/lists/*
+
+COPY package/docker/apache-arrow-flight-sql-enable.sh /docker-entrypoint-initdb.d/
+
+EXPOSE 15432

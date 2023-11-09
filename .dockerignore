@@ -15,19 +15,5 @@
 # specific language governing permissions and limitations
 # under the License.
 
-/*.tar.gz
-/.cache/
-/Gemfile.lock
-/compile_commands.json
-/dev/release/.env
-/dev/release/apache-rat-0.13.jar
-/dev/release/dist
-/dev/release/filtered_rat.txt
-/dev/release/rat.xml
-/doc/build/
-/package/*/*.tar.gz
-/package/*/apt/build.sh
-/package/*/apt/env.sh
-/package/*/apt/repositories/
-/package/*/apt/tmp/
-/package/docker/*.deb
+*
+!package/docker/
