@@ -568,7 +568,6 @@ class Processor {
 		auto get_target_size =
 			read ? [](SharedRingBuffer* buffer) { return buffer->rest_size(); }
 				 : [](SharedRingBuffer* buffer) { return buffer->size(); };
-		auto targetSize = get_target_size(buffer);
 		if (runInPGThread_)
 		{
 			while (true)
@@ -591,7 +590,7 @@ class Processor {
 					  peerName,
 					  get_target_size(buffer),
 					  targetSize);
-					if (get_target_size(buffer) != targetSize)
+					if (get_target_size(buffer) > 0)
 					{
 						break;
 					}
@@ -616,7 +615,7 @@ class Processor {
 				{
 					return true;
 				}
-				return get_target_size(buffer) != targetSize;
+				return get_target_size(buffer) > 0;
 			});
 		}
 		return arrow::Status::OK();
