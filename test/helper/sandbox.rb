@@ -161,7 +161,7 @@ module Helper
         end
         conf.puts("logging_collector = on")
         conf.puts("log_filename = '#{@log_base_name}'")
-        conf.puts("log_min_messages = debug5") if ENV["AFS_DEBUG"] == "yes"
+        conf.puts("log_min_messages = debug5") if ENV["AFS_VERBOSE"] == "yes"
         conf.puts("shared_preload_libraries = " +
                   "'#{shared_preload_libraries.join(",")}'")
         conf.puts("arrow_flight_sql.uri = '#{@flight_sql_uri}'")
