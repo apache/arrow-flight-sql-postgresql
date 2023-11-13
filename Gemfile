@@ -20,5 +20,20 @@
 source "https://rubygems.org"
 
 gem "rake"
-gem "red-arrow-flight-sql"
+# Use the version of red-arrow-flight-sql based on the available
+# arrow-glib version
+red_arrow_flight_sql_version = ">= 0"
+IO.pipe do |input, output|
+  begin
+    pid = spawn("pkg-config", "--modversion", "arrow-flight-sql-glib",
+                out: output,
+                err: File::NULL)
+    output.close
+    Process.waitpid(pid)
+    arrow_flight_sql_glib_version = input.read.strip.sub(/-SNAPSHOT\z/, "")
+    red_arrow_flight_sql_version = "<= #{arrow_flight_sql_glib_version}"
+  rescue SystemCallError
+  end
+end
+gem "red-arrow-flight-sql", red_arrow_flight_sql_version
 gem "test-unit"
