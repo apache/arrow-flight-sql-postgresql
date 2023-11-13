@@ -97,7 +97,7 @@ install_data(
 )
 
 if get_option('benchmark')
-  subdir('benchmark/integer')
+  subdir('benchmark')
 endif
 
 if get_option('example')

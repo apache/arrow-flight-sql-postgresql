@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,6 +17,25 @@
 # specific language governing permissions and limitations
 # under the License.
 
-libpq = dependency('libpq')
-executable('copy', 'copy.c', dependencies: [libpq])
-executable('select', 'select.c', dependencies: [libpq])
+set -eu
+
+size=100000
+db_name=afs_benchmark
+if [ $# -gt 0 ]; then
+  size="${1}"
+fi
+if [ $# -gt 1 ]; then
+  db_name="${2}"
+fi
+
+cat <<SQL
+DROP DATABASE IF EXISTS ${db_name};
+CREATE DATABASE ${db_name};
+\\c ${db_name}
+
+DROP TABLE IF EXISTS data;
+CREATE TABLE data (int32 integer);
+INSERT INTO data
+  SELECT random() * 10000
+    FROM generate_series(1, ${size});
+SQL

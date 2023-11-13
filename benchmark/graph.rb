@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,10 +17,23 @@
 # specific language governing permissions and limitations
 # under the License.
 
-benchmark/*/result.csv
-benchmark/*/result.svg
-compile_commands.json
-dev/release/apache-rat-*.jar
-dev/release/filtered_rat.txt
-dev/release/rat.xml
-doc/source/_static/switcher.json
+require "csv"
+require "charty"
+
+Charty::Backends.use("pyplot")
+
+benchmarks = [
+  "integer",
+  "string",
+]
+benchmarks.each do |benchmark|
+  base_dir = File.join(__dir__, benchmark)
+  data = CSV.read(File.join(base_dir, "result.csv"),
+                  headers: true,
+                  converters: :all)
+  plotter = Charty.bar_plot(data: data,
+                            x: "N records",
+                            y: "Elapsed time (sec)",
+                            color: "Approach")
+  plotter.save(File.join(base_dir, "result.svg"))
+end

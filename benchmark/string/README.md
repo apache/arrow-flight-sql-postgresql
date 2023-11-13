@@ -17,11 +17,11 @@
   under the License.
 -->
 
-# Benchmark - only with integer data
+# Benchmark - only with string data
 
 ## How to run
 
-See the [README.md in the parent directory](../README.md).
+See the [`README.md` in the parent directory](../README.md).
 
 ## Result
 
@@ -44,16 +44,16 @@ Here is a benchmark result on the following environment:
 
 | Apache Arrow Flight SQL | `SELECT` | `COPY` |
 | ----------------------- | -------- | ------ |
-| 0.015                   | 0.015    | 0.012  |
+| 0.047                   | 0.017    | 0.017  |
 
 1M records:
 
 | Apache Arrow Flight SQL | `SELECT` | `COPY` |
 | ----------------------- | -------- | ------ |
-| 0.111                   | 0.148    | 0.114  |
+| 0.512                   | 0.155    | 0.153  |
 
 10M records:
 
 | Apache Arrow Flight SQL | `SELECT` | `COPY` |
 | ----------------------- | -------- | ------ |
-| 0.958                   | 1.502    | 1.162  |
+| 2.951                   | 1.706    | 1.640  |

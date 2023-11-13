@@ -15,10 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-benchmark/*/result.csv
-benchmark/*/result.svg
-compile_commands.json
-dev/release/apache-rat-*.jar
-dev/release/filtered_rat.txt
-dev/release/rat.xml
-doc/source/_static/switcher.json
+libpq = dependency('libpq')
+executable('copy', 'copy.c', dependencies: [libpq, postgresql])
+executable('select', 'select.c', dependencies: [libpq, postgresql])
