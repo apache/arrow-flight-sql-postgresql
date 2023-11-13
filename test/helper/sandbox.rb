@@ -377,8 +377,11 @@ module Helper
         yield
       ensure
         if @postgresql
-          stop_postgres
-          puts(@postgresql.read_log) unless passed?
+          begin
+            stop_postgres
+          ensure
+            puts(@postgresql.read_log) unless passed?
+          end
         end
       end
     end

@@ -77,8 +77,8 @@ extern "C"
 #	define AFS_FUNC __func__
 #endif
 
-// #define AFS_DEBUG
-#ifdef AFS_DEBUG
+// #define AFS_VERBOSE
+#ifdef AFS_VERBOSE
 #	define P(...) ereport(DEBUG5, errmsg_internal(__VA_ARGS__))
 #else
 #	define P(...)
@@ -138,6 +138,14 @@ afs_sigusr1(SIGNAL_ARGS)
 	SetLatch(MyLatch);
 	errno = errnoSaved;
 }
+
+#ifdef AFS_DEBUG
+void
+afs_sigsegv(SIGNAL_ARGS)
+{
+	ereport(FATAL, errcode(ERRCODE_INTERNAL_ERROR), errmsg("CRASHED!!!"), errbacktrace());
+}
+#endif
 
 #ifdef PGRN_HAVE_SHMEM_REQUEST_HOOK
 static shmem_request_hook_type PreviousShmemRequestHook = nullptr;
@@ -2291,7 +2299,7 @@ class Proxy : public WorkerProcessor {
 
 	arrow::Result<int64_t> update(uint64_t sessionID, const std::string& query)
 	{
-#ifdef AFS_DEBUG
+#ifdef AFS_VERBOSE
 		const char* tag = "update";
 #endif
 		auto session = find_session(sessionID);
@@ -2334,7 +2342,7 @@ class Proxy : public WorkerProcessor {
 	arrow::Result<arrow::flight::sql::ActionCreatePreparedStatementResult> prepare(
 		uint64_t sessionID, const std::string& query)
 	{
-#ifdef AFS_DEBUG
+#ifdef AFS_VERBOSE
 		const char* tag = "prepare";
 #endif
 		auto session = find_session(sessionID);
@@ -2374,7 +2382,7 @@ class Proxy : public WorkerProcessor {
 
 	arrow::Status close_prepared_statement(uint64_t sessionID, const std::string& handle)
 	{
-#ifdef AFS_DEBUG
+#ifdef AFS_VERBOSE
 		const char* tag = "close prepared statement";
 #endif
 		auto session = find_session(sessionID);
@@ -2409,7 +2417,7 @@ class Proxy : public WorkerProcessor {
 	                             arrow::flight::FlightMessageReader* reader,
 	                             arrow::flight::FlightMetadataWriter* writer)
 	{
-#ifdef AFS_DEBUG
+#ifdef AFS_VERBOSE
 		const char* tag = "set parameters";
 #endif
 		auto session = find_session(sessionID);
@@ -2500,7 +2508,7 @@ class Proxy : public WorkerProcessor {
 		const std::string& handle,
 		arrow::flight::FlightMessageReader* reader)
 	{
-#ifdef AFS_DEBUG
+#ifdef AFS_VERBOSE
 		const char* tag = "update prepared statement";
 #endif
 		auto session = find_session(sessionID);
@@ -3092,6 +3100,9 @@ afs_executor(Datum arg)
 	pqsignal(SIGTERM, afs_sigterm);
 	pqsignal(SIGHUP, afs_sighup);
 	pqsignal(SIGUSR1, afs_sigusr1);
+#ifdef AFS_DEBUG
+	pqsignal(SIGSEGV, afs_sigsegv);
+#endif
 	BackgroundWorkerUnblockSignals();
 
 	auto executor = new Executor(DatumGetInt64(arg));
@@ -3140,6 +3151,9 @@ afs_server(Datum arg)
 	pqsignal(SIGTERM, afs_sigterm);
 	pqsignal(SIGHUP, afs_sighup);
 	pqsignal(SIGUSR1, afs_sigusr1);
+#ifdef AFS_DEBUG
+	pqsignal(SIGSEGV, afs_sigsegv);
+#endif
 	BackgroundWorkerUnblockSignals();
 
 	{

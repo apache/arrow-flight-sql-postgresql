@@ -38,6 +38,10 @@ endif
 pg_config_names += ['pg_config']
 pg_config = find_program(pg_config_names, version: '>= 15')
 
+cpp_args = []
+if get_option('buildtype').startswith('debug')
+  cpp_args += ['-DAFS_DEBUG']
+endif
 arrow_flight_sql = dependency(
   'ArrowFlightSql',
   method: 'cmake',
@@ -77,6 +81,7 @@ endif
 afs = shared_module(
   'arrow_flight_sql',
   'src/afs.cc',
+  cpp_args: cpp_args,
   dependencies: [arrow_flight_sql, postgresql],
   name_prefix: '',
   name_suffix: name_suffix,
