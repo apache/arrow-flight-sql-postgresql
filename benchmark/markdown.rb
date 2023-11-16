@@ -24,6 +24,11 @@ benchmarks = [
   "string",
 ]
 
+types = [
+  "select",
+  "insert",
+]
+
 def format_n_records(n_records)
   if n_records < 1_000_000
     "%dK" % (n_records / 1_000.0)
@@ -34,44 +39,51 @@ end
 
 benchmarks.each do |benchmark|
   base_dir = File.join(__dir__, benchmark)
-  data = CSV.read(File.join(base_dir, "result.csv"),
-                  headers: true,
-                  converters: :all)
   readme_path = File.join(base_dir, "README.md")
-  graph_markdown = "![Graph](result.svg)"
+  results_header = "## Results"
   readme = File.read(readme_path)
-  readme_before_graph_markdown =
-    readme.split(/^#{Regexp.escape(graph_markdown)}$/, 2)[0]
-  records_per_n = data.each.group_by do |row|
-    row["N records"]
-  end
-  result = ""
-  records_per_n.each do |n_records, rows|
-    result << "\n"
-    result << "#{format_n_records(n_records)} records:\n"
-    result << "\n"
-    approaches = rows.collect do |row|
-      approach = row["Approach"]
-      if approach == "Apache Arrow Flight SQL"
-        approach
-      else
-        "`#{approach}`"
+  readme_before_results_header =
+    readme.split(/^#{Regexp.escape(results_header)}$/, 2)[0]
+  results = ""
+  types.each do |type|
+    results << "### `#{type.upcase}`\n"
+    results << "\n"
+    results << "![Graph](#{type}.svg)"
+    results << "\n"
+    data = CSV.read(File.join(base_dir, "#{type}.csv"),
+                    headers: true,
+                    converters: :all)
+    records_per_n = data.each.group_by do |row|
+      row["N records"]
+    end
+    records_per_n.each do |n_records, rows|
+      results << "\n"
+      results << "#{format_n_records(n_records)} records:\n"
+      results << "\n"
+      approaches = rows.collect do |row|
+        approach = row["Approach"]
+        if approach == "Apache Arrow Flight SQL"
+          approach
+        else
+          "`#{approach}`"
+        end
       end
+      results << ("| " + approaches.join(" | ") + " |\n")
+      separators = approaches.collect {|approach| "-" * approach.size}
+      results << ("| " + separators.join(" | ") + " |\n")
+      formatted_elapsed = approaches.zip(rows).collect do |approach, row|
+        width = approach.size
+        ("%.3f" % row["Elapsed time (sec)"]).ljust(width)
+      end
+      results << ("| " + formatted_elapsed.join(" | ") + " |\n")
     end
-    result << ("| " + approaches.join(" | ") + " |\n")
-    separators = approaches.collect {|approach| "-" * approach.size}
-    result << ("| " + separators.join(" | ") + " |\n")
-    formatted_elapsed = approaches.zip(rows).collect do |approach, row|
-      width = approach.size
-      ("%.3f" % row["Elapsed time (sec)"]).ljust(width)
-    end
-    result << ("| " + formatted_elapsed.join(" | ") + " |\n")
+    results << "\n"
   end
   File.write(readme_path, <<-README)
-#{readme_before_graph_markdown.strip}
+#{readme_before_results_header.strip}
 
-#{graph_markdown}
+#{results_header}
 
-#{result.strip}
+#{results.strip}
   README
 end

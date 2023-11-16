@@ -26,14 +26,20 @@ benchmarks = [
   "integer",
   "string",
 ]
+types = [
+  "insert",
+  "select",
+]
 benchmarks.each do |benchmark|
   base_dir = File.join(__dir__, benchmark)
-  data = CSV.read(File.join(base_dir, "result.csv"),
-                  headers: true,
-                  converters: :all)
-  plotter = Charty.bar_plot(data: data,
-                            x: "N records",
-                            y: "Elapsed time (sec)",
-                            color: "Approach")
-  plotter.save(File.join(base_dir, "result.svg"))
+  types.each do |type|
+    data = CSV.read(File.join(base_dir, "#{type}.csv"),
+                    headers: true,
+                    converters: :all)
+    plotter = Charty.bar_plot(data: data,
+                              x: "N records",
+                              y: "Elapsed time (sec)",
+                              color: "Approach")
+    plotter.save(File.join(base_dir, "#{type}.svg"))
+  end
 end
