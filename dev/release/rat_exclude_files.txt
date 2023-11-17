@@ -15,8 +15,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
-benchmark/*/result.csv
-benchmark/*/result.svg
+benchmark/*/*.csv
+benchmark/*/*.svg
 compile_commands.json
 dev/release/apache-rat-*.jar
 dev/release/filtered_rat.txt

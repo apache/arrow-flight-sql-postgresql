@@ -1493,10 +1493,6 @@ class Executor : public WorkerProcessor {
 				// TODO: Customizable.
 				SharedRingBuffer::allocate_data(
 					&(session->bufferData), area_, 1L * 1024L * 1024L);
-
-				SetCurrentStatementStartTimestamp();
-				SPI_connect();
-				needFinish_ = true;
 			}
 			session->initialized = true;
 			localSession_->valid = true;
@@ -1884,8 +1880,9 @@ class Executor : public WorkerProcessor {
 			ScopedSnapshot scopedSnapshot;
 
 			SetCurrentStatementStartTimestamp();
-			auto result = SPI_execute(query.c_str(), true, 0);
+			SPI_connect();
 			needFinish_ = true;
+			auto result = SPI_execute(query.c_str(), true, 0);
 			if (result > 0)
 			{
 				pgstat_report_activity(
@@ -2059,8 +2056,9 @@ class Executor : public WorkerProcessor {
 			ScopedSnapshot scopedSnapshot;
 
 			SetCurrentStatementStartTimestamp();
-			auto result = SPI_execute(query.c_str(), false, 0);
+			SPI_connect();
 			needFinish_ = true;
+			auto result = SPI_execute(query.c_str(), false, 0);
 			if (result > 0)
 			{
 				session->nUpdatedRecords = SPI_processed;
@@ -2237,6 +2235,9 @@ class Executor : public WorkerProcessor {
 		ScopedTransaction scopedTransaction;
 		ScopedSnapshot scopedSnapshot;
 
+		SetCurrentStatementStartTimestamp();
+		SPI_connect();
+		needFinish_ = true;
 		struct Data {
 			Executor* executor;
 			const char* tag;
@@ -2247,7 +2248,6 @@ class Executor : public WorkerProcessor {
 				return d->executor->write_record_batches(d->tag);
 			},
 			&data);
-		needFinish_ = true;
 		if (!status.ok())
 		{
 			set_error_message(session,
@@ -2282,9 +2282,11 @@ class Executor : public WorkerProcessor {
 		ScopedTransaction scopedTransaction;
 		ScopedSnapshot scopedSnapshot;
 
+		SetCurrentStatementStartTimestamp();
+		SPI_connect();
+		needFinish_ = true;
 		auto input = std::make_shared<SharedRingBufferInputStream>(this, localSession_);
 		auto n_updated_records_result = preparedStatement->update(input);
-		needFinish_ = true;
 		if (n_updated_records_result.ok())
 		{
 			session->nUpdatedRecords = *n_updated_records_result;

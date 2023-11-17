@@ -35,8 +35,11 @@ benchmarks+=(integer)
 benchmarks+=(string)
 
 for benchmark in "${benchmarks[@]}"; do
-  result="${base_dir}/${benchmark}/result.csv"
-  echo "Approach,N records,Elapsed time (sec)" | tee "${result}"
+  select_result="${base_dir}/${benchmark}/select.csv"
+  insert_result="${base_dir}/${benchmark}/insert.csv"
+  echo "Approach,N records,Elapsed time (sec)" | \
+    tee "${select_result}" \
+        "${insert_result}"
   sizes=()
   sizes+=(100000)
   sizes+=(1000000)
@@ -47,16 +50,30 @@ for benchmark in "${benchmarks[@]}"; do
     "${base_dir}/${benchmark}/prepare-sql.sh" "${size}" "${PGDATABASE}" | \
       psql -d postgres
 
-    echo "${benchmark}: ${size}: Apache Arrow Flight SQL"
-    elapsed_time=$(measure "${base_dir}/select.rb")
-    echo "Apache Arrow Flight SQL,${size},${elapsed_time}" | tee -a "${result}"
+    echo "${benchmark}: select: ${size}: Apache Arrow Flight SQL"
+    elapsed_time=$(measure "${base_dir}/select-flight-sql.rb")
+    echo "Apache Arrow Flight SQL,${size},${elapsed_time}" | \
+      tee -a "${select_result}"
 
-    echo "${benchmark}: ${size}: SELECT"
+    echo "${benchmark}: select: ${size}: SELECT"
     elapsed_time=$(measure benchmark/select)
-    echo "SELECT,${size},${elapsed_time}" | tee -a "${result}"
+    echo "SELECT,${size},${elapsed_time}" | tee -a "${select_result}"
 
-    echo "${benchmark}: ${size}: COPY"
-    elapsed_time=$(measure benchmark/copy)
-    echo "COPY,${size},${elapsed_time}" | tee -a "${result}"
+    echo "${benchmark}: select: ${size}: COPY"
+    elapsed_time=$(measure benchmark/select-copy)
+    echo "COPY,${size},${elapsed_time}" | tee -a "${select_result}"
+
+    echo "${benchmark}: insert: ${size}: Apache Arrow Flight SQL"
+    elapsed_time=$(measure "${base_dir}/insert-flight-sql.rb")
+    echo "Apache Arrow Flight SQL,${size},${elapsed_time}" | \
+      tee -a "${insert_result}"
+
+    echo "${benchmark}: insert: ${size}: INSERT"
+    elapsed_time=$(measure benchmark/insert)
+    echo "INSERT,${size},${elapsed_time}" | tee -a "${insert_result}"
+
+    echo "${benchmark}: insert: ${size}: COPY"
+    elapsed_time=$(measure benchmark/insert-copy)
+    echo "COPY,${size},${elapsed_time}" | tee -a "${insert_result}"
   done
 done

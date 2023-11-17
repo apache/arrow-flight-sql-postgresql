@@ -16,5 +16,8 @@
 # under the License.
 
 libpq = dependency('libpq')
-executable('copy', 'copy.c', dependencies: [libpq, postgresql])
+
+executable('insert', 'insert.cc', dependencies: [libpq, postgresql])
+executable('insert-copy', 'insert-copy.cc', dependencies: [libpq, postgresql])
 executable('select', 'select.c', dependencies: [libpq, postgresql])
+executable('select-copy', 'select-copy.c', dependencies: [libpq, postgresql])

@@ -23,7 +23,7 @@
 
 See the [`README.md` in the parent directory](../README.md).
 
-## Result
+## Environment
 
 Here is a benchmark result on the following environment:
 
@@ -38,22 +38,48 @@ Here is a benchmark result on the following environment:
   0.2.0 (not released yet)
   14df9b5fe61eda2d71bdfbf67c61a227741f616c
 
-![Graph](result.svg)
+## Results
+
+### `SELECT`
+
+![Graph](select.svg)
 
 100K records:
 
 | Apache Arrow Flight SQL | `SELECT` | `COPY` |
 | ----------------------- | -------- | ------ |
-| 0.047                   | 0.017    | 0.017  |
+| 0.041                   | 0.016    | 0.016  |
 
 1M records:
 
 | Apache Arrow Flight SQL | `SELECT` | `COPY` |
 | ----------------------- | -------- | ------ |
-| 0.512                   | 0.155    | 0.153  |
+| 0.353                   | 0.149    | 0.148  |
 
 10M records:
 
 | Apache Arrow Flight SQL | `SELECT` | `COPY` |
 | ----------------------- | -------- | ------ |
-| 2.951                   | 1.706    | 1.640  |
+| 2.154                   | 1.924    | 1.596  |
+
+### `INSERT`
+
+![Graph](insert.svg)
+
+100K records:
+
+| Apache Arrow Flight SQL | `INSERT` | `COPY` |
+| ----------------------- | -------- | ------ |
+| 0.343                   | 0.338    | 0.416  |
+
+1M records:
+
+| Apache Arrow Flight SQL | `INSERT` | `COPY` |
+| ----------------------- | -------- | ------ |
+| 6.906                   | 5.730    | 2.870  |
+
+10M records:
+
+| Apache Arrow Flight SQL | `INSERT` | `COPY` |
+| ----------------------- | -------- | ------ |
+| 116.579                 | 107.045  | 66.410 |
