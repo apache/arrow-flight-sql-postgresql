@@ -31,8 +31,9 @@
 /* See the "Binary Format" section in
  * https://www.postgresql.org/docs/current/sql-copy.html for
  * details. */
-static const char signature[] = "PGCOPY\n\377\r\n";
+
 /* The last '\0' is also part of the signature. */
+static const char signature[11] = "PGCOPY\n\377\r\n";
 static const size_t signatureSize = sizeof(signature);
 
 typedef struct {
@@ -53,7 +54,7 @@ read_uint16(Buffer* buffer, uint16_t* output, const char* tag)
 		return false;
 	}
 
-	*output = htons(*((uint16_t*)(buffer->data)));
+	*output = ntohs(*((uint16_t*)(buffer->data)));
 	buffer->data += sizeof(uint16_t);
 	buffer->size -= sizeof(uint16_t);
 	return true;
@@ -72,7 +73,7 @@ read_uint32(Buffer* buffer, uint32_t* output, const char* tag)
 		return false;
 	}
 
-	*output = htonl(*((uint32_t*)(buffer->data)));
+	*output = ntohl(*((uint32_t*)(buffer->data)));
 	buffer->data += sizeof(uint32_t);
 	buffer->size -= sizeof(uint32_t);
 	return true;
@@ -176,7 +177,7 @@ parse_tuples(Buffer* buffer, Oid* types, bool* finished)
 				}
 				default:
 					fprintf(stderr,
-					        "tuple: field: %u: Unsupported type: %u: %u: %d\n",
+					        "tuple: field: %u: unsupported type: %u: %u: %d\n",
 					        i,
 					        type,
 					        size,

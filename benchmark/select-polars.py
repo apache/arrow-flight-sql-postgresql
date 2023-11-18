@@ -32,4 +32,3 @@ start = time.perf_counter()
 polars.read_database_uri(query="SELECT * FROM data",
                          uri=uri)
 print(time.perf_counter() - start)
-

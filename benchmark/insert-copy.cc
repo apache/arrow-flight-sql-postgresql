@@ -17,30 +17,18 @@
  * under the License.
  */
 
-#include <chrono>
-#include <cstdlib>
-#include <iostream>
-#include <vector>
+#include "insert.hh"
 
-#include <libpq-fe.h>
+#include <arpa/inet.h>
 
-class ConnectionFinisher {
-   public:
-	ConnectionFinisher(PGconn* connection) : connection_(connection) {}
-	~ConnectionFinisher() { PQfinish(connection_); }
-
-   private:
-	PGconn* connection_;
-};
-
-class ResultClearner {
-   public:
-	ResultClearner(PGresult* result) : result_(result) {}
-	~ResultClearner() { PQclear(result_); }
-
-   private:
-	PGresult* result_;
-};
+namespace {
+template <typename Type>
+void
+write_binary_data(std::ostream& stream, Type value)
+{
+	stream.write(reinterpret_cast<const char*>(&value), sizeof(Type));
+}
+};  // namespace
 
 int
 main(int argc, char** argv)
@@ -78,33 +66,31 @@ main(int argc, char** argv)
 		}
 	}
 
-	std::vector<std::string> buffers;
+	std::vector<std::vector<Value>> records;
 	{
-		auto result = PQexec(connection, "COPY data TO STDOUT (FORMAT binary)");
+		auto result = PQexec(connection, "SELECT * FROM data");
 		ResultClearner resultClearner(result);
-		if (PQresultStatus(result) != PGRES_COPY_OUT)
+		if (PQresultStatus(result) != PGRES_TUPLES_OK)
 		{
-			std::cerr << "failed to copy to: " << PQerrorMessage(connection) << std::endl;
+			std::cerr << "failed to select: " << PQerrorMessage(connection) << std::endl;
 			return EXIT_FAILURE;
 		}
-		while (true)
+		auto nTuples = PQntuples(result);
+		auto nFields = PQnfields(result);
+		for (int iTuple = 0; iTuple < nTuples; iTuple++)
 		{
-			char* data;
-			auto size = PQgetCopyData(connection, &data, 0);
-			if (size == -1)
+			std::vector<Value> values;
+			for (int iField = 0; iField < nFields; iField++)
 			{
-				break;
+				if (!append_value(values, result, iTuple, iField))
+				{
+					return EXIT_FAILURE;
+				}
 			}
-			if (size == -2)
-			{
-				std::cerr << "failed to read copy data: " << PQerrorMessage(connection)
-						  << std::endl;
-				return EXIT_FAILURE;
-			}
-			buffers.emplace_back(data, size);
-			free(data);
+			records.push_back(std::move(values));
 		}
 	}
+
 	auto before = std::chrono::steady_clock::now();
 	{
 		auto result = PQexec(connection, "COPY data_insert FROM STDOUT (FORMAT binary)");
@@ -115,15 +101,58 @@ main(int argc, char** argv)
 					  << std::endl;
 			return EXIT_FAILURE;
 		}
-		for (const auto& buffer : buffers)
+		std::ostringstream copyDataStream;
 		{
-			auto copyDataResult = PQputCopyData(connection, buffer.data(), buffer.size());
-			if (copyDataResult == -1)
+			// See the "Binary Format" section in
+			// https://www.postgresql.org/docs/current/sql-copy.html for
+			// details.
+
+			const char signature[] = "PGCOPY\n\377\r\n";
+			// The last '\0' is also part of the signature.
+			copyDataStream << std::string_view(signature, sizeof(signature));
+			const uint32_t flags = 0;
+			write_binary_data(copyDataStream, htonl(flags));
+			const uint32_t headerExtensionAreaLength = 0;
+			write_binary_data(copyDataStream, htonl(headerExtensionAreaLength));
+			auto nRecords = records.size();
+			for (size_t iRecord = 0; iRecord < nRecords; ++iRecord)
 			{
-				std::cerr << "failed to put copy data: " << PQerrorMessage(connection)
-						  << std::endl;
-				return EXIT_FAILURE;
+				const auto& values = records[iRecord];
+				const auto nValues = values.size();
+				write_binary_data(copyDataStream, htons(nValues));
+				for (size_t iValue = 0; iValue < nValues; ++iValue)
+				{
+					const auto& value = values[iValue];
+					if (std::holds_alternative<std::monostate>(value))
+					{
+						write_binary_data(copyDataStream,
+						                  htonl(static_cast<uint32_t>(-1)));
+					}
+					else if (std::holds_alternative<int32_t>(value))
+					{
+						const auto& int32Value = std::get<int32_t>(value);
+						write_binary_data(copyDataStream, htonl(sizeof(int32_t)));
+						write_binary_data(copyDataStream,
+						                  htonl(static_cast<uint32_t>(int32Value)));
+					}
+					else if (std::holds_alternative<std::string>(value))
+					{
+						const auto& stringValue = std::get<std::string>(value);
+						write_binary_data(copyDataStream, htonl(stringValue.size()));
+						copyDataStream << stringValue;
+					}
+				}
 			}
+			const uint16_t fileTrailer = -1;
+			write_binary_data(copyDataStream, htons(fileTrailer));
+		}
+		const auto& copyData = copyDataStream.str();
+		auto copyDataResult = PQputCopyData(connection, copyData.data(), copyData.size());
+		if (copyDataResult == -1)
+		{
+			std::cerr << "failed to put copy data: " << PQerrorMessage(connection)
+					  << std::endl;
+			return EXIT_FAILURE;
 		}
 		auto copyEndResult = PQputCopyEnd(connection, nullptr);
 		if (copyEndResult == -1)
