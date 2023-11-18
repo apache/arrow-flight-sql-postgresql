@@ -55,7 +55,7 @@ parse_value(PGresult* result, int iTuple, int iField)
 		}
 		break;
 		default:
-			fprintf(stderr, "Unsupported type: %u\n", type);
+			fprintf(stderr, "unsupported type: %u\n", type);
 			return false;
 	}
 	return true;

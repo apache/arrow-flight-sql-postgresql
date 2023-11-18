@@ -48,19 +48,19 @@ Here is a benchmark result on the following environment:
 
 | Apache Arrow Flight SQL | `SELECT` | `COPY` |
 | ----------------------- | -------- | ------ |
-| 0.014                   | 0.015    | 0.011  |
+| 0.014                   | 0.015    | 0.012  |
 
 1M records:
 
 | Apache Arrow Flight SQL | `SELECT` | `COPY` |
 | ----------------------- | -------- | ------ |
-| 0.082                   | 0.145    | 0.110  |
+| 0.082                   | 0.140    | 0.112  |
 
 10M records:
 
 | Apache Arrow Flight SQL | `SELECT` | `COPY` |
 | ----------------------- | -------- | ------ |
-| 0.694                   | 1.486    | 1.142  |
+| 0.691                   | 1.463    | 1.108  |
 
 ### `INSERT`
 
@@ -70,16 +70,16 @@ Here is a benchmark result on the following environment:
 
 | Apache Arrow Flight SQL | `INSERT` | `COPY` |
 | ----------------------- | -------- | ------ |
-| 0.273                   | 0.121    | 0.020  |
+| 0.497                   | 0.310    | 0.068  |
 
 1M records:
 
 | Apache Arrow Flight SQL | `INSERT` | `COPY` |
 | ----------------------- | -------- | ------ |
-| 6.055                   | 2.232    | 0.345  |
+| 7.013                   | 5.410    | 0.637  |
 
 10M records:
 
 | Apache Arrow Flight SQL | `INSERT` | `COPY` |
 | ----------------------- | -------- | ------ |
-| 51.757                  | 31.390   | 7.832  |
+| 55.064                  | 37.522   | 6.720  |

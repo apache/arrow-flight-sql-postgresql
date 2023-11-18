@@ -17,31 +17,7 @@
  * under the License.
  */
 
-#include <chrono>
-#include <cstdlib>
-#include <iostream>
-
-#include <libpq-fe.h>
-
-#include <catalog/pg_type_d.h>
-
-class ConnectionFinisher {
-   public:
-	ConnectionFinisher(PGconn* connection) : connection_(connection) {}
-	~ConnectionFinisher() { PQfinish(connection_); }
-
-   private:
-	PGconn* connection_;
-};
-
-class ResultClearner {
-   public:
-	ResultClearner(PGresult* result) : result_(result) {}
-	~ResultClearner() { PQclear(result_); }
-
-   private:
-	PGresult* result_;
-};
+#include "insert.hh"
 
 int
 main(int argc, char** argv)
@@ -79,7 +55,7 @@ main(int argc, char** argv)
 		}
 	}
 
-	std::string insert = "INSERT INTO data_insert VALUES ";
+	std::vector<std::vector<Value>> records;
 	{
 		auto result = PQexec(connection, "SELECT * FROM data");
 		ResultClearner resultClearner(result);
@@ -92,37 +68,57 @@ main(int argc, char** argv)
 		auto nFields = PQnfields(result);
 		for (int iTuple = 0; iTuple < nTuples; iTuple++)
 		{
-			if (iTuple > 0)
-			{
-				insert += ", ";
-			}
+			std::vector<Value> values;
 			for (int iField = 0; iField < nFields; iField++)
 			{
-				if (PQgetisnull(result, iTuple, iField))
+				if (!append_value(values, result, iTuple, iField))
 				{
-					insert += "(null)";
-				}
-				else
-				{
-					insert += "(";
-					auto type = PQftype(result, iField);
-					if (type == TEXTOID)
-					{
-						insert += "'";
-					}
-					insert += PQgetvalue(result, iTuple, iField);
-					if (type == TEXTOID)
-					{
-						insert += "'";
-					}
-					insert += ")";
+					return EXIT_FAILURE;
 				}
 			}
+			records.push_back(std::move(values));
 		}
 	}
+
 	auto before = std::chrono::steady_clock::now();
 	{
-		auto result = PQexec(connection, insert.c_str());
+		std::ostringstream insert;
+		insert << "INSERT INTO data_insert VALUES ";
+		auto nRecords = records.size();
+		for (size_t iRecord = 0; iRecord < nRecords; ++iRecord)
+		{
+			const auto& values = records[iRecord];
+			if (iRecord > 0)
+			{
+				insert << ", ";
+			}
+			insert << "(";
+			auto nValues = values.size();
+			for (size_t iValue = 0; iValue < nValues; ++iValue)
+			{
+				if (iValue > 0)
+				{
+					insert << ", ";
+				}
+				const auto& value = values[iValue];
+				if (std::holds_alternative<std::monostate>(value))
+				{
+					insert << "null";
+				}
+				else if (std::holds_alternative<int32_t>(value))
+				{
+					insert << std::get<int32_t>(value);
+				}
+				else if (std::holds_alternative<std::string>(value))
+				{
+					insert << "'";
+					insert << std::get<std::string>(value);
+					insert << "'";
+				}
+			}
+			insert << ")";
+		}
+		auto result = PQexec(connection, insert.str().c_str());
 		ResultClearner resultClearner(result);
 		if (PQresultStatus(result) != PGRES_COMMAND_OK)
 		{
