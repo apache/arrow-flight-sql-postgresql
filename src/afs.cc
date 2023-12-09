@@ -1309,6 +1309,19 @@ class PreparedStatement {
 	using WriteFunc = std::add_pointer<arrow::Status(void*)>::type;
 	arrow::Status select(WriteFunc write, void* writeData)
 	{
+		if (parameters_.empty())
+		{
+			auto result = SPI_execute(query_.c_str(), false, 0);
+			if (result <= 0)
+			{
+				return arrow::Status::Invalid("failed to run a query: ",
+				                              SPI_result_code_string(result),
+				                              ": ",
+				                              query_);
+			}
+			return write(writeData);
+		}
+
 		for (const auto& recordBatch : parameters_)
 		{
 			SPIExecuteOptions options = {};

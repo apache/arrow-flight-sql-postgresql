@@ -114,6 +114,22 @@ class FlightSQLTest < Test::Unit::TestCase
     end
   end
 
+  def test_select_prepare_without_parameters
+    unless flight_sql_client.respond_to?(:prepare)
+      omit("red-arrow-flight-sql 14.0.0 or later is required")
+    end
+
+    flight_sql_client.prepare("SELECT 29 AS value", @options) do |statement|
+      info = statement.execute(@options)
+      assert_equal(Arrow::Schema.new(value: :int32),
+                   info.get_schema)
+      endpoint = info.endpoints.first
+      reader = flight_sql_client.do_get(endpoint.ticket, @options)
+      assert_equal(Arrow::Table.new(value: Arrow::Int32Array.new([29])),
+                   reader.read_all)
+    end
+  end
+
   def test_select_from
     run_sql("CREATE TABLE data (value integer)")
     run_sql("INSERT INTO data VALUES (1), (-2), (3)")
