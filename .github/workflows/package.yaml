@@ -85,7 +85,7 @@ jobs:
         with:
           repository: apache/arrow
           path: arrow
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: source
       - name: Prepare
