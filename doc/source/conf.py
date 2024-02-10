@@ -22,12 +22,13 @@
 import os
 import pathlib
 import re
+from datetime import datetime
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'Apache Arrow Flight SQL adapter for PostgreSQL'
-copyright = '2019-2024, Apache Software Foundation'
+project = 'Apache Arrow Flight SQL Adapter for PostgreSQL'
+copyright = f'2019-{datetime.now().year}, Apache Software Foundation'
 trademark = [
     "Apache Arrow Flight, Arrow Flight, Apache, the Apache feather logo, and the Apache Arrow project logo",
     "are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries."
