@@ -1,0 +1,10 @@
+{# Display the trademark information (which is defined in conf.py html_context). #}
+{% if show_copyright and trademark %}
+  <p class="trademark">
+    <div class="footer-item">
+      {% for trademark_line in trademark %}
+        <p>{{ trademark_line }}</p>
+      {% endfor %}
+    </div>
+  </p>
+{% endif %}
