@@ -30,7 +30,7 @@ from datetime import datetime
 project = 'Apache Arrow Flight SQL adapter for PostgreSQL'
 copyright = f'2022-{datetime.now().year}, Apache Software Foundation'
 trademark = [
-    "Apache Arrow Flight, Arrow Flight, Apache, the Apache feather logo, and the Apache Arrow project logo",
+    "Apache Arrow Flight, Arrow Flight, Arrow Flight SQL, Apache, the Apache feather logo, and the Apache Arrow project logo",
     "are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries."
 ]
 author = 'Apache Software Foundation'
