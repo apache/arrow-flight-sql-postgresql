@@ -20,7 +20,7 @@
 # Arrow Flight SQL Adapter for PostgreSQL Documentation
 
 This folder contains the source for the public documentation.
-This is published to https://arrow.apache.org/flight-sql-postgresql/ by a GitHub action
+This is published to https://arrow.apache.org/flight-sql-postgresql/ by a GitHub Actions workflow
 when changes are merged to the main branch.
 
 ## Dependencies
@@ -48,27 +48,26 @@ To prepare building the documentation run the following on the root level of the
 Run the provided script to build the HTML pages.
 
 ```bash
-cd docs
-sphinx-build -M html source build
+rake doc:html
 ```
 
-The HTML will be generated into a `build` directory.
+The HTML will be generated into a `doc/build` directory.
 
 Preview the site on Linux by running this command.
 
 ```bash
-firefox build/html/index.html
+firefox doc/build/index.html
 ```
 
 ## Release Process
 
 This documentation is hosted at https://arrow.apache.org/flight-sql-postgresql/
 
-When the PR is merged to the `main` branch of the DataFusion
-repository, a [github workflow](https://github.com/apache/arrow-flight-sql-postgresql/blob/main/.github/workflows/doc.yaml) which:
+When the PR is merged to the `main` branch of the Apache Arrow Flight SQL adapter for PostgreSQL
+repository, a [GitHub Actions workflow](https://github.com/apache/arrow-flight-sql-postgresql/blob/main/.github/workflows/doc.yaml) which:
 
-1. Builds the html content
-2. Pushes the html content to the [`asf-site`](https://github.com/apache/arrow-flight-sql-postgresql/tree/asf-site) branch in this repository.
+1. Builds the HTML content
+2. Pushes the HTML content to the [`asf-site`](https://github.com/apache/arrow-flight-sql-postgresql/tree/asf-site) branch in this repository.
 
 The Apache Software Foundation provides https://arrow.apache.org/,
 which serves content based on the configuration in
