@@ -48,5 +48,5 @@ if [ "${ssl}" = "on" ]; then
 else
   uri="grpc://0.0.0.0:15432"
 fi
-echo "arrow_flight_sql.uri = '${url}'" | \
+echo "arrow_flight_sql.uri = '${uri}'" | \
   tee -a "${PGDATA}/postgresql.conf"
