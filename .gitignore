@@ -31,3 +31,4 @@
 /package/*/apt/repositories/
 /package/*/apt/tmp/
 /package/docker/*.deb
+/venv/
