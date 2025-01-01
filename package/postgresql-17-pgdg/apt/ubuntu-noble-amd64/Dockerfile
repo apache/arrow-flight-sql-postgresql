@@ -61,5 +61,5 @@ RUN \
     meson \
     ninja-build \
     pkg-config \
-    postgresql-server-dev-16 && \
+    postgresql-server-dev-17 && \
   apt clean

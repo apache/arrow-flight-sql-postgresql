@@ -64,5 +64,5 @@ RUN \
     libkrb5-dev \
     meson \
     ninja-build \
-    postgresql-server-dev-16 && \
+    postgresql-server-dev-17 && \
   apt clean
