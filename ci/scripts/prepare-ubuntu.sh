@@ -35,12 +35,14 @@ wget https://apache.jfrog.io/artifactory/arrow/${os}/${apt_source_deb}
 sudo apt install -y -V ./${apt_source_deb}
 
 wget -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
-  sudo gpg --no-default-keyring --keyring /usr/share/keyrings/pgdg.gpg --import -
+  gpg --no-default-keyring --keyring ./pgdg.kbx --import -
+gpg --no-default-keyring --keyring ./pgdg.kbx --export --armor | \
+  tee /usr/share/keyrings/pgdg.asc
 (echo "Types: deb"; \
  echo "URIs: http://apt.postgresql.org/pub/repos/apt"; \
  echo "Suites: ${code_name}-pgdg"; \
  echo "Components: main"; \
- echo "Signed-By: /usr/share/keyrings/pgdg.gpg") | \
+ echo "Signed-By: /usr/share/keyrings/pgdg.asc") | \
   sudo tee /etc/apt/sources.list.d/pgdg.sources
 
 sudo apt update

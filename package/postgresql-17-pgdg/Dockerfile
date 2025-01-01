@@ -17,7 +17,7 @@
 
 FROM postgres:17-bookworm
 
-COPY package/docker/postgresql-16-pgdg-apache-arrow-flight-sql_*_amd64.deb ./
+COPY package/docker/postgresql-17-pgdg-apache-arrow-flight-sql_*_amd64.deb ./
 RUN \
   apt update && \
   apt install -y -V lsb-release wget && \
@@ -26,8 +26,8 @@ RUN \
   rm apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb && \
   apt update && \
   apt install -y -V \
-    ./postgresql-16-pgdg-apache-arrow-flight-sql_*.deb && \
-  rm -f postgresql-16-pgdg-apache-arrow-flight-sql_*.deb && \
+    ./postgresql-17-pgdg-apache-arrow-flight-sql_*.deb && \
+  rm -f postgresql-17-pgdg-apache-arrow-flight-sql_*.deb && \
   apt clean && \
   rm -rf /var/lib/apt/lists/*
 
