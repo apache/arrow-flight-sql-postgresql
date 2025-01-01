@@ -4083,7 +4083,7 @@ class FlightSQLServer : public arrow::flight::sql::FlightSqlServerBase {
 		ARROW_ASSIGN_OR_RAISE(auto ticket,
 		                      arrow::flight::sql::CreateStatementQueryTicket(query));
 		std::vector<arrow::flight::FlightEndpoint> endpoints{
-			arrow::flight::FlightEndpoint{arrow::flight::Ticket{std::move(ticket)}, {}}};
+			create_endpoint(std::move(ticket))};
 		ARROW_ASSIGN_OR_RAISE(
 			auto result,
 			arrow::flight::FlightInfo::Make(*schema, descriptor, endpoints, -1, -1));
@@ -4140,7 +4140,7 @@ class FlightSQLServer : public arrow::flight::sql::FlightSqlServerBase {
 		ARROW_ASSIGN_OR_RAISE(auto ticket,
 		                      arrow::flight::sql::CreateStatementQueryTicket(handle));
 		std::vector<arrow::flight::FlightEndpoint> endpoints{
-			arrow::flight::FlightEndpoint{arrow::flight::Ticket{std::move(ticket)}, {}}};
+			create_endpoint(std::move(ticket))};
 		ARROW_ASSIGN_OR_RAISE(
 			auto result,
 			arrow::flight::FlightInfo::Make(*schema, descriptor, endpoints, -1, -1));
@@ -4169,6 +4169,21 @@ class FlightSQLServer : public arrow::flight::sql::FlightSqlServerBase {
 	}
 
    private:
+	arrow::flight::FlightEndpoint create_endpoint(std::string ticket)
+	{
+#if ARROW_VERSION_MAJOR >= 14
+		return arrow::flight::FlightEndpoint{
+			arrow::flight::Ticket{std::move(ticket)}, {}, std::nullopt, ""};
+#elif ARROW_VERSION_MAJOR >= 13
+		return arrow::flight::FlightEndpoint{
+			arrow::flight::Ticket{std::move(ticket)}, {}, std::nullopt};
+#else
+		return arrow::flight::FlightEndpoint
+		{
+			arrow::flight::Ticket{std::move(ticket), {}};
+#endif
+	}
+
 	arrow::Result<uint64_t> session_id(const arrow::flight::ServerCallContext& context)
 	{
 		auto middleware = reinterpret_cast<HeaderAuthServerMiddleware*>(
