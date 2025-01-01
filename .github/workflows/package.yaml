@@ -80,6 +80,8 @@ jobs:
           - "ubuntu-jammy-amd64-postgresql-15-pgdg"
           - "debian-bookworm-amd64-postgresql-16-pgdg"
           - "ubuntu-jammy-amd64-postgresql-16-pgdg"
+          - "debian-bookworm-amd64-postgresql-17-pgdg"
+          - "ubuntu-noble-amd64-postgresql-17-pgdg"
     steps:
       - uses: actions/checkout@v4
         with:
