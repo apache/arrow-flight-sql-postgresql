@@ -578,7 +578,7 @@ static dshash_parameters SessionsParams = {
 	sizeof(SharedSessionData),
 	dshash_memcmp,
 	dshash_memhash,
-	0,  // Set later because this is determined dynamically.
+	dshash_memcpy,
 };
 
 struct SharedData {

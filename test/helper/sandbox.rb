@@ -57,8 +57,8 @@ module Helper
 
     def run_command(*args)
       pid, output_read, error_read = spawn_process(*args)
-      output = ""
-      error = ""
+      output = +""
+      error = +""
       status = nil
       timeout = 1
       loop do
