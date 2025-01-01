@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-ARG FROM=debian:bookworm
+ARG FROM=ubuntu:24.04
 FROM ${FROM}
 
 RUN \
@@ -25,10 +25,6 @@ RUN \
 RUN \
   echo 'APT::Install-Recommends "false";' > \
     /etc/apt/apt.conf.d/disable-install-recommends
-
-RUN \
-  sed -i'' -e 's/main$/main contrib non-free/g' \
-    /etc/apt/sources.list.d/debian.sources
 
 ARG DEBUG
 RUN \
@@ -67,5 +63,6 @@ RUN \
     libkrb5-dev \
     meson \
     ninja-build \
-    postgresql-server-dev-15 && \
+    pkg-config \
+    postgresql-server-dev-17 && \
   apt clean

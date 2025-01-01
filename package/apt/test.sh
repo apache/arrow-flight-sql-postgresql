@@ -96,12 +96,14 @@ case "${TYPE}" in
 esac
 
 wget -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
-  gpg --no-default-keyring --keyring /usr/share/keyrings/pgdg.gpg --import -
+  gpg --no-default-keyring --keyring ./pgdg.kbx --import -
+gpg --no-default-keyring --keyring ./pgdg.kbx --export --armor | \
+  tee /usr/share/keyrings/pgdg.asc
 (echo "Types: deb"; \
  echo "URIs: http://apt.postgresql.org/pub/repos/apt"; \
  echo "Suites: ${code_name}-pgdg"; \
  echo "Components: main"; \
- echo "Signed-By: /usr/share/keyrings/pgdg.gpg") | \
+ echo "Signed-By: /usr/share/keyrings/pgdg.asc") | \
   tee /etc/apt/sources.list.d/pgdg.sources
 
 echo "::endgroup::"

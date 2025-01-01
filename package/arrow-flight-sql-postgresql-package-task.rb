@@ -75,6 +75,8 @@ class ArrowFlightSQLPostgreSQLPackageTask < PackageTask
       # "debian-bookworm-arm64",
       "ubuntu-jammy-amd64",
       # "ubuntu-jammy-arm64",
+      "ubuntu-noble-amd64",
+      # "ubuntu-noble-arm64",
     ]
   end
 

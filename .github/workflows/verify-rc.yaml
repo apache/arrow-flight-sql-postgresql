@@ -41,6 +41,7 @@ jobs:
         postgresql-version:
           - "15"
           - "16"
+          - "17"
     steps:
       - uses: actions/checkout@v4
       - name: Prepare

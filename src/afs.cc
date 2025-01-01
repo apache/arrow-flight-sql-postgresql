@@ -578,7 +578,10 @@ static dshash_parameters SessionsParams = {
 	sizeof(SharedSessionData),
 	dshash_memcmp,
 	dshash_memhash,
-	0,  // Set later because this is determined dynamically.
+#if PG_VERSION_NUM >= 170000
+	dshash_memcpy,
+#endif
+	/* .tranche_id = */ 0,  // Set later because this is determined dynamically.
 };
 
 struct SharedData {
