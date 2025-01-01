@@ -46,7 +46,7 @@ RUN \
     ./apache-arrow-apt-source-latest-${code_name}.deb && \
   rm apache-arrow-apt-source-latest-${code_name}.deb && \
   wget -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | \
-    gpg --no-default-keyring --keyring ./pgdg.gpg --import - && \
+    gpg --no-default-keyring --keyring ./pgdg.kbx --import - && \
   gpg --no-default-keyring --keyring ./pgdg.kbx --export --armor > \
     /usr/share/keyrings/pgdg.asc && \
   rm pgdg.kbx && \
