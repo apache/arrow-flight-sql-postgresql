@@ -28,11 +28,13 @@ github:
     squash: true
   features:
     issues: true
+    discussions: true
 
 notifications:
   commits: commits@arrow.apache.org
-  issues_status: issues@arrow.apache.org
+  discussions: user@arrow.apache.org
   issues: github@arrow.apache.org
+  issues_status: issues@arrow.apache.org
   pullrequests: github@arrow.apache.org
 
 publish:
