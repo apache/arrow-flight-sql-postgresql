@@ -34,7 +34,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ruby
@@ -52,7 +52,7 @@ jobs:
           name: doc
           path: doc/build
       - name: Prepare destination branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         if: github.repository_owner == 'apache'
         with:
           fetch-depth: 0

@@ -39,7 +39,7 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ruby
@@ -83,7 +83,7 @@ jobs:
           - "debian-bookworm-amd64-postgresql-17-pgdg"
           - "ubuntu-noble-amd64-postgresql-17-pgdg"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: apache/arrow
           path: arrow
