@@ -43,7 +43,7 @@ jobs:
           - "16"
           - "17"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Prepare
         run: |
           ci/scripts/prepare-${{ matrix.os }}.sh ${{ matrix.postgresql-version }}
@@ -66,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Run
         run: |
           version=${GITHUB_REF_NAME%-rc*}
