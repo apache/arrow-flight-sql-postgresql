@@ -22,13 +22,21 @@
 import os
 import pathlib
 import re
+from datetime import datetime
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'Apache Arrow Flight SQL adapter for PostgreSQL'
-copyright = '2022-2023, Apache Arrow Developers'
-author = 'Apache Arrow Developers'
+copyright = (f'2022-{datetime.now().year}, Apache Software Foundation\n',
+             "Apache Arrow Flight, Arrow Flight, Arrow Flight SQL, Apache, the Apache feather logo, and the Apache Arrow project logo",
+    "are either registered trademarks or trademarks of The Apache Software Foundation in the United States and other countries."
+             )
+trademark = [
+
+]
+author = 'Apache Software Foundation'
+
 version = os.environ.get('VERSION')
 if not version:
     meson_build_path = pathlib.Path(__file__).parent / '../../meson.build'
@@ -96,12 +104,15 @@ html_theme_options = {
     ],
     'use_edit_page_button': True,
     'show_nav_level': 2,
+    "footer_start": ["copyright"],
+    "footer_end": ["sphinx-version", "theme-version"]
 }
 html_context = {
     'github_user': 'apache',
     'github_repo': 'arrow-flight-sql-postgresql',
     'github_version': 'main',
     'doc_path': 'doc/source',
+    'trademark': trademark
 }
 html_static_path = ['_static']
 html_favicon = "_static/favicon.ico"
