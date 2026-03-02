@@ -47,7 +47,7 @@ jobs:
       - name: Build
         run: |
           rake doc:html
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: doc
           path: doc/build
