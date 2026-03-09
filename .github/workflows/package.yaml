@@ -217,7 +217,7 @@ jobs:
           popd
       - uses: docker/setup-qemu-action@v3
         if: env.DOCKER_IMAGE_BUILD == 'yes'
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
         if: env.DOCKER_IMAGE_BUILD == 'yes'
         id: buildx
       - uses: docker/build-push-action@v6
