@@ -19,6 +19,8 @@
 
 source "https://rubygems.org"
 
+plugin "rubygems-requirements-system"
+
 gem "rake"
 # Use the version of red-arrow-flight-sql based on the available
 # arrow-glib version
