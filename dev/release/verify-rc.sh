@@ -253,7 +253,7 @@ test_apt() {
       verify_type=staging-${verify_type}
     fi
     for postgresql_vesrion in 15 16; do
-      for target in "debian:bookworm" \
+      for target in "debian:trixie" \
                     "ubuntu:jammy"; do
         show_info "Verifying ${target} with PostgreSQL ${postgresql_version}..."
         if ! docker run \

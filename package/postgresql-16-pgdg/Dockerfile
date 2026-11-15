@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM postgres:16-bookworm
+FROM postgres:16-trixie
 
 COPY package/docker/postgresql-16-pgdg-apache-arrow-flight-sql_*_amd64.deb ./
 RUN \
