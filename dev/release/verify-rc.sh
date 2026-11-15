@@ -152,7 +152,7 @@ ensure_source_directory() {
   dist_name="apache-arrow-flight-sql-postgresql-${VERSION}"
   if [ "${SOURCE_KIND}" = "local" ]; then
     # Local repository, testing repositories should be already present
-    if [ -z "${TOP_SOURCE_DIR}" ]; then
+    if [ -z "${TARGET_SOURCE_DIR:-}" ]; then
       export TARGET_SOURCE_DIR="${TOP_SOURCE_DIR}"
     fi
     echo "Verifying local checkout at ${TARGET_SOURCE_DIR}"
