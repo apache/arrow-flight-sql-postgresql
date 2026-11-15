@@ -51,8 +51,9 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ruby
-          bundler-cache: true
-          cache-version: 1
+      - name: Install dependencies
+        run: |
+          bundle install
       - name: Run
         run: |
           ARROW_FLIGHT_SQL_POSTGRESQL_MESON_SETUP_ARGS="-Dbenchmark=true"
