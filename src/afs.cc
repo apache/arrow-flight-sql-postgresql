@@ -4000,8 +4000,20 @@ class HeaderAuthServerMiddlewareFactory : public arrow::flight::ServerMiddleware
 		std::getline(valueStream, type, ' ');
 		if (type == "Basic")
 		{
-			std::stringstream decodedStream(
-				arrow::util::base64_decode(value.substr(valueStream.tellg())));
+			auto encoded = value.substr(valueStream.tellg());
+#if ARROW_VERSION_MAJOR >= 25
+			auto decodedResult = arrow::util::base64_decode(encoded);
+			if (!decodedResult.ok())
+			{
+				return arrow::flight::MakeFlightError(
+					arrow::flight::FlightStatusCode::Unauthenticated,
+					std::string("invalid Basic credentials: ") +
+						decodedResult.status().ToString());
+			}
+			std::stringstream decodedStream(*decodedResult);
+#else
+			std::stringstream decodedStream(arrow::util::base64_decode(encoded));
+#endif
 			std::string userName("");
 			std::string password("");
 			std::getline(decodedStream, userName, ':');

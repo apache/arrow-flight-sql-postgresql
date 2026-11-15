@@ -18,7 +18,7 @@
 project('arrow-flight-sql-postgresql', 'c', 'cpp',
         default_options: [
           'buildtype=debug',
-          'cpp_std=c++17',
+          'cpp_std=c++20',
         ],
         license: 'Apache-2.0',
         # Meson 1.1.0 or later is required.
