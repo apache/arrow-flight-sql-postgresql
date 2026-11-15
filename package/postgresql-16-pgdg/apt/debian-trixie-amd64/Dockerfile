@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-ARG FROM=debian:bookworm
+ARG FROM=debian:trixie
 FROM ${FROM}
 
 RUN \

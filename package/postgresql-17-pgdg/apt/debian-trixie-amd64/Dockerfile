@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-ARG FROM=debian:bookworm
+ARG FROM=debian:trixie
 FROM ${FROM}
 
 RUN \
@@ -67,5 +67,5 @@ RUN \
     libkrb5-dev \
     meson \
     ninja-build \
-    postgresql-server-dev-15 && \
+    postgresql-server-dev-17 && \
   apt clean

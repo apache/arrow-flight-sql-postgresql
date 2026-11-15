@@ -23,7 +23,7 @@
 
 Supported versions:
 
-- Debian GNU/Linux bookworm
+- Debian GNU/Linux trixie
 - Ubuntu 22.04 LTS
 
 Enable the PostgreSQL APT repository:

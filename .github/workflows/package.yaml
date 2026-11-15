@@ -76,11 +76,11 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - "debian-bookworm-amd64-postgresql-15-pgdg"
+          - "debian-trixie-amd64-postgresql-15-pgdg"
           - "ubuntu-jammy-amd64-postgresql-15-pgdg"
-          - "debian-bookworm-amd64-postgresql-16-pgdg"
+          - "debian-trixie-amd64-postgresql-16-pgdg"
           - "ubuntu-jammy-amd64-postgresql-16-pgdg"
-          - "debian-bookworm-amd64-postgresql-17-pgdg"
+          - "debian-trixie-amd64-postgresql-17-pgdg"
           - "ubuntu-noble-amd64-postgresql-17-pgdg"
     steps:
       - uses: actions/checkout@v7
@@ -96,17 +96,17 @@ jobs:
           echo "BASE_NAME=${BASE_NAME}" >> $GITHUB_ENV
           echo "ARROW_SOURCE=$(pwd)/arrow" >> $GITHUB_ENV
           full_target=${{ matrix.target }}
-          # debian-bookworm-amd64-postgresql-15-pgdg ->
+          # debian-trixie-amd64-postgresql-15-pgdg ->
           # postgresql-15-pgdg
           PACKAGE=postgresql-${full_target#*-postgresql-}
           echo "PACKAGE=${PACKAGE}" >> $GITHUB_ENV
-          # debian-bookworm-amd64-postgresql-15-pgdg ->
+          # debian-trixie-amd64-postgresql-15-pgdg ->
           # 15 ->
           POSTGRESQL_VERSION=${full_target#*-postgresql-}
           POSTGRESQL_VERSION=${POSTGRESQL_VERSION%-pgdg}
           echo "POSTGRESQL_VERSION=${POSTGRESQL_VERSION}" >> $GITHUB_ENV
-          # debian-bookworm-amd64-postgresql-15-pgdg ->
-          # debian-bookworm-amd64
+          # debian-trixie-amd64-postgresql-15-pgdg ->
+          # debian-trixie-amd64
           PACKAGE_TARGET=${full_target%-postgresql-*}
           echo "APT_TARGETS=${PACKAGE_TARGET}" >> $GITHUB_ENV
           echo "YUM_TARGETS=${PACKAGE_TARGET}" >> $GITHUB_ENV
@@ -127,10 +127,10 @@ jobs:
           echo "ARCHITECTURE=${ARCHITECTURE}" >> $GITHUB_ENV
 
           case ${PACKAGE_TARGET} in
-            debian-bookworm-*)
+            debian-trixie-*)
               DOCKER_IMAGE_BUILD=yes
               DOCKER_TAG_PREFIX="ghcr.io/${GITHUB_REPOSITORY}:"
-              DOCKER_TAG_SUFFIX="-bookworm-${POSTGRESQL_VERSION}"
+              DOCKER_TAG_SUFFIX="-trixie-${POSTGRESQL_VERSION}"
               DOCKER_TAGS="${DOCKER_VERSION}"
               if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
                 DOCKER_TAGS="${DOCKER_TAG_PREFIX}${GITHUB_REF_NAME}${DOCKER_TAG_SUFFIX}"

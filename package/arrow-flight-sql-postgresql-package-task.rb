@@ -71,8 +71,8 @@ class ArrowFlightSQLPostgreSQLPackageTask < PackageTask
 
   def apt_targets_default
     [
-      "debian-bookworm-amd64",
-      # "debian-bookworm-arm64",
+      "debian-trixie-amd64",
+      # "debian-trixie-arm64",
       "ubuntu-jammy-amd64",
       # "ubuntu-jammy-arm64",
       "ubuntu-noble-amd64",
