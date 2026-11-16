@@ -637,6 +637,17 @@ class Processor {
 		return 0;
 	}
 
+	// kill(-1, ...) sends the signal to all processes that we can send
+	// signals to. So we must not call kill() with InvalidPid (-1).
+	void signal_process(pid_t pid)
+	{
+		if (ARROW_PREDICT_FALSE(pid == InvalidPid))
+		{
+			return;
+		}
+		kill(pid, SIGUSR1);
+	}
+
 	arrow::Status wait(LocalSessionData* session, SharedRingBuffer* buffer, WaitMode mode)
 	{
 		const char* tag = (mode == WaitMode::Read) ? "wait read" : "wait written";
@@ -1493,6 +1504,11 @@ class Executor : public WorkerProcessor {
 		// sleep(5);
 		pgstat_report_activity(STATE_RUNNING, (std::string(Tag) + ": opening").c_str());
 		auto session = find_session();
+		// The main process also sets this after
+		// WaitForBackgroundWorkerStartup() but the server process may
+		// refer to this before that. So we set this here before we set
+		// session->initialized.
+		session->executorPID = MyProcPid;
 		PG_TRY();
 		{
 			auto databaseName =
@@ -2713,7 +2729,7 @@ class Proxy : public WorkerProcessor {
 				session->action = Action::Select;
 			}
 			P("%s: %s: %s: kill executor: %d", Tag, tag_, tag, executorPID);
-			kill(executorPID, SIGUSR1);
+			signal_process(executorPID);
 		}
 		selectRequests_.clear();
 	}
@@ -2849,7 +2865,7 @@ class Proxy : public WorkerProcessor {
 					session->nUpdatedRecords = -1;
 				}
 				P("%s: %s: %s: kill executor: %d", Tag, tag_, tag, executorPID);
-				kill(executorPID, SIGUSR1);
+				signal_process(executorPID);
 				request->processing = true;
 				++it;
 			}
@@ -2966,7 +2982,7 @@ class Proxy : public WorkerProcessor {
 					set_shared_string(session->preparedStatementHandle, std::string(""));
 				}
 				P("%s: %s: %s: kill executor: %d", Tag, tag_, tag, executorPID);
-				kill(executorPID, SIGUSR1);
+				signal_process(executorPID);
 				request->processing = true;
 				++it;
 			}
@@ -3086,7 +3102,7 @@ class Proxy : public WorkerProcessor {
 					session->action = Action::ClosePreparedStatement;
 				}
 				P("%s: %s: %s: kill executor: %d", Tag, tag_, tag, executorPID);
-				kill(executorPID, SIGUSR1);
+				signal_process(executorPID);
 				request->processing = true;
 				++it;
 			}
@@ -3201,7 +3217,7 @@ class Proxy : public WorkerProcessor {
 					session->setParametersFinished = false;
 				}
 				P("%s: %s: %s: kill executor: %d", Tag, tag_, tag, executorPID);
-				kill(executorPID, SIGUSR1);
+				signal_process(executorPID);
 				request->processing = true;
 				++it;
 			}
@@ -3243,7 +3259,7 @@ class Proxy : public WorkerProcessor {
 			}
 			ARROW_RETURN_NOT_OK(writer->Close());
 			P("%s: %s: %s: kill executor: %d", Tag, tag_, tag, executorPID);
-			kill(executorPID, SIGUSR1);
+			signal_process(executorPID);
 		}
 		{
 			std::unique_lock<std::mutex> lock(mutex_);
@@ -3312,7 +3328,7 @@ class Proxy : public WorkerProcessor {
 				session->action = Action::SelectPreparedStatement;
 			}
 			P("%s: %s: %s: kill executor: %d", Tag, tag_, tag, executorPID);
-			kill(executorPID, SIGUSR1);
+			signal_process(executorPID);
 		}
 		selectPreparedStatementRequests_.clear();
 	}
@@ -3430,7 +3446,7 @@ class Proxy : public WorkerProcessor {
 					session->nUpdatedRecords = -1;
 				}
 				P("%s: %s: %s: kill executor: %d", Tag, tag_, tag, executorPID);
-				kill(executorPID, SIGUSR1);
+				signal_process(executorPID);
 				request->processing = true;
 				++it;
 			}
@@ -3473,7 +3489,7 @@ class Proxy : public WorkerProcessor {
 			}
 			ARROW_RETURN_NOT_OK(writer->Close());
 			P("%s: %s: %s: kill executor: %d", Tag, tag_, tag, executorPID);
-			kill(executorPID, SIGUSR1);
+			signal_process(executorPID);
 		}
 		{
 			std::unique_lock<std::mutex> lock(mutex_);
@@ -3541,7 +3557,7 @@ class Proxy : public WorkerProcessor {
 			  tag_,
 			  tag,
 			  request->localSession->peerPID);
-			kill(request->localSession->peerPID, SIGUSR1);
+			signal_process(request->localSession->peerPID);
 		}
 		readRequests_.clear();
 	}
@@ -3639,7 +3655,7 @@ class Proxy : public WorkerProcessor {
 			  tag_,
 			  tag,
 			  request->localSession->peerPID);
-			kill(request->localSession->peerPID, SIGUSR1);
+			signal_process(request->localSession->peerPID);
 		}
 		writeRequests_.clear();
 	}
@@ -3933,7 +3949,7 @@ class MainProcessor : public Processor {
 		}
 		dshash_seq_term(&sessionsStatus);
 		P("%s: %s: %s: end", Tag, tag_, tag);
-		kill(sharedData_->serverPID, SIGUSR1);
+		signal_process(sharedData_->serverPID);
 	}
 
 	dshash_table* sessions_;
